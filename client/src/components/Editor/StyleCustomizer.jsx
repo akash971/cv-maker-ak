@@ -15,10 +15,11 @@ export default function StyleCustomizer({ cvData, setCvData }) {
   };
 
   const fonts = [
-    { name: 'Times New Roman (Authentic BD)', value: 'Times New Roman', fontClass: 'font-serif' },
-    { name: 'Inter (Clean Modern)', value: 'Inter', fontClass: 'font-sans' },
-    { name: 'Roboto (International Standard)', value: 'Roboto', fontClass: 'font-sans' },
-    { name: 'Arial (Simple & Sharp)', value: 'Arial', fontClass: 'font-sans' },
+    { name: 'Calibri (Standard Corporate & BD)', value: 'Calibri', fontClass: 'font-calibri' },
+    { name: 'Inter (Clean Modern Sans)', value: 'Inter', fontClass: 'font-inter' },
+    { name: 'Arial (Universal Clean Sans)', value: 'Arial', fontClass: 'font-arial' },
+    { name: 'Roboto (Crisp Google Sans)', value: 'Roboto', fontClass: 'font-roboto' },
+    { name: 'Times New Roman (Legacy Serif)', value: 'Times New Roman', fontClass: 'font-serif' },
     { name: 'Georgia (Classic Editorial)', value: 'Georgia', fontClass: 'font-serif' },
     { name: 'Garamond (Executive Serif)', value: 'Garamond', fontClass: 'font-serif' },
   ];

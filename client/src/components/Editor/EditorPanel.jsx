@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
-import { User, Layers, Palette, Sparkles, RefreshCw } from 'lucide-react';
+import { User, Layers, Palette, Sparkles, RotateCcw } from 'lucide-react';
 import PersonalInfoEditor from './PersonalInfoEditor';
 import SectionsManager from './SectionsManager';
 import StyleCustomizer from './StyleCustomizer';
 import { BANGLADESHI_DEMO, INTERNATIONAL_DEMO } from '../../data/defaultTemplates';
 
-export default function EditorPanel({ cvData, setCvData }) {
-  const [activeTab, setActiveTab] = useState('sections'); // 'personal', 'sections', 'style'
+export default function EditorPanel({ 
+  cvData, 
+  setCvData, 
+  onSwitchStyle, 
+  onRestoreBackup, 
+  hasBackup,
+  activeTab: externalActiveTab,
+  setActiveTab: externalSetActiveTab,
+  activeSectionId,
+  setActiveSectionId
+}) {
+  const [internalActiveTab, setInternalActiveTab] = useState('personal'); // 'personal', 'sections', 'style'
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+  const setActiveTab = externalSetActiveTab || setInternalActiveTab;
 
   const tabs = [
     { id: 'personal', label: '1. Basic Info', icon: User, color: 'text-blue-600' },
@@ -14,15 +26,42 @@ export default function EditorPanel({ cvData, setCvData }) {
     { id: 'style', label: '3. Look & Style', icon: Palette, color: 'text-purple-600' },
   ];
 
-  const handleLoadBangladeshiDemo = () => {
-    if (window.confirm('Load Bangladeshi Sample CV? (Matches the uploaded picture)')) {
-      setCvData(JSON.parse(JSON.stringify(BANGLADESHI_DEMO)));
-    }
-  };
+  const handleLoadSampleData = () => {
+    const isCurrentBD = cvData.styleMode === 'bangladeshi';
+    const sample = isCurrentBD ? BANGLADESHI_DEMO : INTERNATIONAL_DEMO;
+    const styleName = isCurrentBD ? 'Bangladeshi' : 'International';
 
-  const handleLoadInternationalDemo = () => {
-    if (window.confirm('Load International Sample Resume?')) {
-      setCvData(JSON.parse(JSON.stringify(INTERNATIONAL_DEMO)));
+    const confirmed = window.confirm(
+      `Load sample ${styleName} CV sections?\n\nDon't worry: your personal name and contact info will be kept safe, and a backup snapshot will be created so you can undo anytime!`
+    );
+
+    if (confirmed) {
+      // 1. Save backup to cv_backup_history
+      try {
+        const history = JSON.parse(localStorage.getItem('cv_backup_history') || '[]');
+        history.unshift({
+          timestamp: Date.now(),
+          mode: cvData.styleMode,
+          data: JSON.parse(JSON.stringify(cvData)),
+          description: `Backup before loading ${styleName} sample`
+        });
+        localStorage.setItem('cv_backup_history', JSON.stringify(history.slice(0, 20)));
+      } catch (e) {
+        console.warn('Backup error', e);
+      }
+
+      // 2. Load sample but PRESERVE user personal contact details if they've entered custom ones!
+      const userHasCustomName = cvData.personal?.fullName &&
+        cvData.personal.fullName !== 'MD. EMRAN HOSSEN BIPLOB' &&
+        cvData.personal.fullName !== 'Alex Morgan';
+
+      const preservedPersonal = userHasCustomName ? { ...cvData.personal } : { ...sample.personal };
+
+      setCvData({
+        ...sample,
+        styleMode: cvData.styleMode || sample.styleMode,
+        personal: preservedPersonal
+      });
     }
   };
 
@@ -53,28 +92,58 @@ export default function EditorPanel({ cvData, setCvData }) {
           })}
         </div>
 
-        {/* Quick Sample Demo Fillers */}
-        <div className="flex items-center justify-between gap-2 mt-2 pt-1 text-[11px] text-slate-500">
-          <span className="flex items-center gap-1 font-semibold text-slate-600">
-            <Sparkles className="w-3 h-3 text-amber-500" />
-            <span>Class 5 Helper:</span>
-          </span>
-          <div className="flex items-center gap-1.5">
+        {/* Style Switcher & Safe Helper Bar */}
+        <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-slate-200/60">
+          <div className="flex items-center gap-1 bg-slate-200/80 p-0.5 rounded-lg text-xs">
             <button
               type="button"
-              onClick={handleLoadBangladeshiDemo}
-              className="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md font-semibold transition"
-              title="Loads exact data from the uploaded CV image"
+              onClick={() => onSwitchStyle ? onSwitchStyle('bangladeshi') : setCvData(prev => ({ ...prev, styleMode: 'bangladeshi' }))}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                cvData.styleMode === 'bangladeshi'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              }`}
+              title="Switch to Bangladeshi Style (Preserves all your data)"
             >
-              🇧🇩 Load BD Demo
+              <span>🇧🇩</span>
+              <span>BD Style</span>
             </button>
             <button
               type="button"
-              onClick={handleLoadInternationalDemo}
-              className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-md font-semibold transition"
-              title="Loads international software resume sample"
+              onClick={() => onSwitchStyle ? onSwitchStyle('international') : setCvData(prev => ({ ...prev, styleMode: 'international' }))}
+              className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                cvData.styleMode !== 'bangladeshi'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              }`}
+              title="Switch to International Style (Preserves all your data)"
             >
-              🌍 Load Intl Demo
+              <span>🌍</span>
+              <span>Intl Style</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {hasBackup && (
+              <button
+                type="button"
+                onClick={onRestoreBackup}
+                className="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-md text-xs font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                title="Undo previous change or recover draft"
+              >
+                <RotateCcw className="w-3 h-3 text-amber-700" />
+                <span>Undo</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleLoadSampleData}
+              className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-md text-[11px] font-semibold transition cursor-pointer flex items-center gap-1"
+              title="Fill sample text without deleting your personal details"
+            >
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              <span>Fill Sample</span>
             </button>
           </div>
         </div>
@@ -86,7 +155,12 @@ export default function EditorPanel({ cvData, setCvData }) {
           <PersonalInfoEditor cvData={cvData} setCvData={setCvData} />
         )}
         {activeTab === 'sections' && (
-          <SectionsManager cvData={cvData} setCvData={setCvData} />
+          <SectionsManager 
+            cvData={cvData} 
+            setCvData={setCvData} 
+            openSectionId={activeSectionId}
+            setOpenSectionId={setActiveSectionId}
+          />
         )}
         {activeTab === 'style' && (
           <StyleCustomizer cvData={cvData} setCvData={setCvData} />

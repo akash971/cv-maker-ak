@@ -21,9 +21,17 @@ import SkillBadgesEditor from './SkillBadgesEditor';
 import DeclarationEditor from './DeclarationEditor';
 import AddSectionModal from './AddSectionModal';
 
-export default function SectionsManager({ cvData, setCvData }) {
+export default function SectionsManager({ 
+  cvData, 
+  setCvData,
+  openSectionId: externalOpenSectionId,
+  setOpenSectionId: externalSetOpenSectionId
+}) {
   const sections = cvData.sections || [];
-  const [openSectionId, setOpenSectionId] = useState(sections[0]?.id || null);
+  const [internalOpenSectionId, setInternalOpenSectionId] = useState(sections[0]?.id || null);
+
+  const openSectionId = externalOpenSectionId !== undefined ? externalOpenSectionId : internalOpenSectionId;
+  const setOpenSectionId = externalSetOpenSectionId || setInternalOpenSectionId;
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const updateSection = (updatedSec) => {
@@ -116,9 +124,11 @@ export default function SectionsManager({ cvData, setCvData }) {
           return (
             <div 
               key={sec.id} 
+              id={`editor-section-${sec.id}`}
+              data-editor-section-id={sec.id}
               className={`rounded-xl border transition-all duration-150 ${
                 isOpen 
-                  ? 'border-blue-400 bg-white shadow-xs' 
+                  ? 'border-blue-400 bg-white shadow-xs ring-2 ring-blue-100' 
                   : 'border-slate-200 bg-slate-50/80 hover:bg-white'
               } ${!isEnabled ? 'opacity-50' : ''}`}
             >

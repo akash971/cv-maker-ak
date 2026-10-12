@@ -17,6 +17,18 @@ export default function PersonalInfoGridEditor({ section, onUpdate }) {
     onUpdate({ ...section, fields: newFields });
   };
 
+  const handleBlurClean = (index) => {
+    const newFields = [...fields];
+    const target = newFields[index];
+    if (target) {
+      newFields[index] = {
+        label: (target.label || '').replace(/[:|]+$/, '').replace(/^[:|]+/, '').trim(),
+        value: (target.value || '').replace(/^\s*[:|]+\s*/, '').trim()
+      };
+      onUpdate({ ...section, fields: newFields });
+    }
+  };
+
   const addField = () => {
     onUpdate({
       ...section,
@@ -41,6 +53,12 @@ export default function PersonalInfoGridEditor({ section, onUpdate }) {
           onChange={(e) => handleTitleChange(e.target.value)}
           className="w-full text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 uppercase"
         />
+      </div>
+
+      {/* 2-Column Grid Indicator */}
+      <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-2.5 py-1.5 text-[11px] flex items-center justify-between">
+        <span className="font-semibold">⚡ Compact 2-Column Grid Active</span>
+        <span className="text-emerald-700">Saves 50% vertical page height</span>
       </div>
 
       <div className="space-y-2.5">
@@ -68,6 +86,7 @@ export default function PersonalInfoGridEditor({ section, onUpdate }) {
                   type="text"
                   value={field.label}
                   onChange={(e) => updateField(idx, 'label', e.target.value)}
+                  onBlur={() => handleBlurClean(idx)}
                   placeholder="Field Name"
                   className="w-full text-xs font-semibold px-2 py-1.5 rounded border border-slate-300 bg-white focus:outline-blue-500"
                 />
@@ -83,6 +102,7 @@ export default function PersonalInfoGridEditor({ section, onUpdate }) {
                     rows={2}
                     value={field.value}
                     onChange={(e) => updateField(idx, 'value', e.target.value)}
+                    onBlur={() => handleBlurClean(idx)}
                     placeholder="Enter value..."
                     className="w-full text-xs px-2 py-1.5 rounded border border-slate-300 bg-white focus:outline-blue-500 leading-tight"
                   />
@@ -91,6 +111,7 @@ export default function PersonalInfoGridEditor({ section, onUpdate }) {
                     type="text"
                     value={field.value}
                     onChange={(e) => updateField(idx, 'value', e.target.value)}
+                    onBlur={() => handleBlurClean(idx)}
                     placeholder="Enter value..."
                     className="w-full text-xs px-2 py-1.5 rounded border border-slate-300 bg-white focus:outline-blue-500"
                   />

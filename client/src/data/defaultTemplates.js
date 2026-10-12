@@ -5,13 +5,18 @@ export const BANGLADESHI_DEMO = {
   title: "Md. Emran Hossen Biplob - Bangladeshi CV",
   styleMode: "bangladeshi",
   design: {
-    fontFamily: "Times New Roman",
+    fontFamily: "Calibri",
     fontSize: "medium", // small, medium, large
     lineSpacing: "normal", // compact, normal, relaxed
     accentColor: "#4b5563",
     headingStyle: "shaded-bar", // shaded-bar, underline, pill, modern-left-border, minimal
-    headerTitle: "RESUM",
+    headerAlignment: "center", // left, center, right
+    showHeaderTitle: true,
+    headerTitle: "CURRICULUM VITAE",
+    showHeaderSubtitle: true,
     headerSubtitle: "of",
+    contactStyle: "icons-inline", // icons-inline, icons-stacked, classic-labels
+    showContactIcons: true,
     photo: {
       show: false,
       url: "",
@@ -28,6 +33,7 @@ export const BANGLADESHI_DEMO = {
     fullName: "MD. EMRAN HOSSEN BIPLOB",
     jobTitle: "",
     mobile: "01781020390",
+    whatsapp: "",
     email: "emranhossen2412@gmail.com",
     address: "",
     linkedin: "",

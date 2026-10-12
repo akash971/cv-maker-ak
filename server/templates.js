@@ -4,13 +4,18 @@ const bangladeshiClassicCV = {
   title: "Md. Emran Hossen Biplob - Bangladeshi CV",
   styleMode: "bangladeshi",
   design: {
-    fontFamily: "Times New Roman",
+    fontFamily: "Calibri",
     fontSize: "medium", // small, medium, large
     lineSpacing: "normal", // compact, normal, relaxed
     accentColor: "#4a4a4a",
     headingStyle: "shaded-bar", // shaded-bar, bordered, underline, minimal
-    headerTitle: "RESUM",
+    headerAlignment: "center", // left, center, right
+    showHeaderTitle: true,
+    headerTitle: "CURRICULUM VITAE",
+    showHeaderSubtitle: true,
     headerSubtitle: "of",
+    contactStyle: "icons-inline", // icons-inline, icons-stacked, classic-labels
+    showContactIcons: true,
     photo: {
       show: false,
       url: "",
@@ -27,6 +32,7 @@ const bangladeshiClassicCV = {
     fullName: "MD. EMRAN HOSSEN BIPLOB",
     jobTitle: "Diploma Engineer (Power Technology)",
     mobile: "01781020390",
+    whatsapp: "",
     email: "emranhossen2412@gmail.com",
     address: "Vill: Chandrapur Post: Chandrapur, Upazila: Kaligonj Zilla: Lalmonirhat",
     linkedin: "",

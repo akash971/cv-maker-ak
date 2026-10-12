@@ -1,6 +1,21 @@
 import React, { useRef } from 'react';
-import { User, Phone, Mail, MapPin, Image, Upload, Trash2, Globe } from 'lucide-react';
-import { LinkedinIcon, GithubIcon } from '../Common/Icons';
+import { 
+  User, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Image, 
+  Upload, 
+  Trash2, 
+  Globe, 
+  AlignLeft, 
+  AlignCenter, 
+  AlignRight, 
+  Eye, 
+  EyeOff, 
+  Briefcase
+} from 'lucide-react';
+import { LinkedinIcon, GithubIcon, WhatsAppIcon } from '../Common/Icons';
 
 export default function PersonalInfoEditor({ cvData, setCvData }) {
   const fileInputRef = useRef(null);
@@ -34,7 +49,7 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
       design: {
         ...prev.design,
         photo: {
-          ...prev.design.photo,
+          ...prev.design?.photo,
           [field]: value
         }
       }
@@ -45,7 +60,6 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Convert to base64 Data URL so it saves easily in local state and offline
     const reader = new FileReader();
     reader.onload = () => {
       updatePhoto('url', reader.result);
@@ -54,126 +68,431 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
     reader.readAsDataURL(file);
   };
 
+  const headerAlignment = design.headerAlignment || 'center';
+  const showHeaderTitle = design.showHeaderTitle !== false && (design.headerTitle !== '' || design.showHeaderTitle === true);
+  const showHeaderSubtitle = design.showHeaderSubtitle !== false && (design.headerSubtitle !== '' || design.showHeaderSubtitle === true);
+  const contactStyle = design.contactStyle || (design.showContactIcons !== false ? 'icons-inline' : 'classic-labels');
+
   return (
-    <div className="space-y-5">
-      {/* Friendly banner */}
+    <div className="space-y-4">
+      {/* Friendly Guide Banner */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-900">
-        <span className="text-base">👦</span>
+        <span className="text-base">👤</span>
         <div>
-          <span className="font-bold">Step 1: Fill Your Basic Details!</span>
+          <span className="font-bold">Step 1: Customize Your Header & Contacts!</span>
           <p className="text-amber-700 mt-0.5">
-            Type your name, phone number, and email. Any change you make shows on your CV instantly on the right!
+            You can align your header (Left / Center / Right), remove titles as you wish, and display modern icons for phone, email & social media!
           </p>
         </div>
       </div>
 
-      {/* Header Titles (Customizable without restrictions) */}
+      {/* 1. Header Alignment & Removable Titles Card */}
       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
-        <div className="text-xs font-bold text-slate-700 flex items-center justify-between">
-          <span>👑 Top Header Title</span>
-          <span className="text-[11px] font-normal text-slate-500">Edit titles freely</span>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span>📐 Header Alignment (Left to Right)</span>
+          </span>
+          <span className="text-[10px] text-slate-500 font-medium">Move as you wish</span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Main Title</label>
-            <input
-              type="text"
-              value={design.headerTitle || ''}
-              onChange={(e) => updateDesign('headerTitle', e.target.value)}
-              placeholder="e.g. RESUM or CURRICULUM VITAE"
-              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 font-medium"
-            />
+
+        {/* Alignment Segmented Buttons */}
+        <div className="grid grid-cols-3 gap-1.5 bg-slate-200/80 p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => updateDesign('headerAlignment', 'left')}
+            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              headerAlignment === 'left' 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <AlignLeft className="w-3.5 h-3.5" />
+            <span>Left Align</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => updateDesign('headerAlignment', 'center')}
+            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              headerAlignment === 'center' 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <AlignCenter className="w-3.5 h-3.5" />
+            <span>Center</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => updateDesign('headerAlignment', 'right')}
+            className={`py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              headerAlignment === 'right' 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <AlignRight className="w-3.5 h-3.5" />
+            <span>Right Align</span>
+          </button>
+        </div>
+
+        {/* Removable Title & Subtitle Options */}
+        <div className="space-y-2.5 pt-1 border-t border-slate-200">
+          {/* Main Title ("CURRICULUM VITAE") */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+              <span className="flex items-center gap-1">
+                <span>Top Main Title</span>
+                <span className="text-slate-400 font-normal">(e.g. CURRICULUM VITAE / RESUM)</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => updateDesign('showHeaderTitle', !showHeaderTitle)}
+                className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded cursor-pointer transition ${
+                  showHeaderTitle ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-700 hover:bg-emerald-50'
+                }`}
+              >
+                {showHeaderTitle ? (
+                  <>
+                    <EyeOff className="w-3 h-3" />
+                    <span>Remove / Hide</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3 h-3" />
+                    <span>Show Title</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {showHeaderTitle && (
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={design.headerTitle ?? 'CURRICULUM VITAE'}
+                  onChange={(e) => updateDesign('headerTitle', e.target.value)}
+                  placeholder="e.g. CURRICULUM VITAE or RESUM"
+                  className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-bold"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateDesign('headerTitle', '');
+                    updateDesign('showHeaderTitle', false);
+                  }}
+                  className="text-xs text-rose-500 hover:text-rose-700 px-2 py-1.5 border border-slate-200 rounded-lg hover:bg-rose-50 transition"
+                  title="Completely remove title"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">Subtitle / Connective</label>
-            <input
-              type="text"
-              value={design.headerSubtitle || ''}
-              onChange={(e) => updateDesign('headerSubtitle', e.target.value)}
-              placeholder="e.g. of"
-              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 font-medium"
-            />
+
+          {/* Subtitle / Connective ("of") */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-700">
+              <span className="flex items-center gap-1">
+                <span>Connective Subtitle</span>
+                <span className="text-slate-400 font-normal">(e.g. "of")</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => updateDesign('showHeaderSubtitle', !showHeaderSubtitle)}
+                className={`flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded cursor-pointer transition ${
+                  showHeaderSubtitle ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-700 hover:bg-emerald-50'
+                }`}
+              >
+                {showHeaderSubtitle ? (
+                  <>
+                    <EyeOff className="w-3 h-3" />
+                    <span>Remove / Hide</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-3 h-3" />
+                    <span>Show Subtitle</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {showHeaderSubtitle && (
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={design.headerSubtitle ?? 'of'}
+                  onChange={(e) => updateDesign('headerSubtitle', e.target.value)}
+                  placeholder="e.g. of"
+                  className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white italic font-serif"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateDesign('headerSubtitle', '');
+                    updateDesign('showHeaderSubtitle', false);
+                  }}
+                  className="text-xs text-rose-500 hover:text-rose-700 px-2 py-1.5 border border-slate-200 rounded-lg hover:bg-rose-50 transition"
+                  title="Completely remove subtitle"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Candidate Full Name */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-          <User className="w-3.5 h-3.5 text-blue-500" />
-          <span>Full Name (Bold in CV)</span>
-        </label>
-        <input
-          type="text"
-          value={personal.fullName || ''}
-          onChange={(e) => updatePersonal('fullName', e.target.value)}
-          placeholder="e.g. MD. EMRAN HOSSEN BIPLOB"
-          className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden font-bold"
-        />
+      {/* 2. Contact Display Style & Icons Options Card */}
+      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span>✨ Contact & Social Icons Option</span>
+          </span>
+          <span className="text-[10px] text-blue-600 font-semibold">Phone, Email, Social</span>
+        </div>
+
+        {/* Contact Format Selector */}
+        <div className="grid grid-cols-3 gap-1.5 bg-slate-200/80 p-1 rounded-xl text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              updateDesign('contactStyle', 'icons-inline');
+              updateDesign('showContactIcons', true);
+            }}
+            className={`py-1.5 px-2 rounded-lg font-bold transition flex flex-col items-center justify-center text-center cursor-pointer ${
+              contactStyle === 'icons-inline' 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <span>🏷️ Icons Bar</span>
+            <span className="text-[9.5px] font-normal text-slate-500">Horizontal bar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              updateDesign('contactStyle', 'icons-stacked');
+              updateDesign('showContactIcons', true);
+            }}
+            className={`py-1.5 px-2 rounded-lg font-bold transition flex flex-col items-center justify-center text-center cursor-pointer ${
+              contactStyle === 'icons-stacked' 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <span>📋 Icons Stacked</span>
+            <span className="text-[9.5px] font-normal text-slate-500">Row-by-row</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              updateDesign('contactStyle', 'classic-labels');
+              updateDesign('showContactIcons', false);
+            }}
+            className={`py-1.5 px-2 rounded-lg font-bold transition flex flex-col items-center justify-center text-center cursor-pointer ${
+              contactStyle === 'classic-labels' 
+                ? 'bg-white text-blue-700 shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            }`}
+          >
+            <span>🔤 Classic Text</span>
+            <span className="text-[9.5px] font-normal text-slate-500">Mobile No: ...</span>
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200">
+          <span className="text-slate-600 font-medium">Show Icons for Contacts</span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={design.showContactIcons !== false && contactStyle !== 'classic-labels'}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                updateDesign('showContactIcons', checked);
+                if (checked && contactStyle === 'classic-labels') {
+                  updateDesign('contactStyle', 'icons-inline');
+                } else if (!checked) {
+                  updateDesign('contactStyle', 'classic-labels');
+                }
+              }}
+              className="sr-only peer"
+            />
+            <div className="w-8 h-4.5 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
       </div>
 
-      {/* Job Title / Profession */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1">
-          Job Title or Profession (Optional for Bangladeshi, Great for International)
-        </label>
-        <input
-          type="text"
-          value={personal.jobTitle || ''}
-          onChange={(e) => updatePersonal('jobTitle', e.target.value)}
-          placeholder="e.g. Electrical Engineer / Student"
-          className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden"
-        />
-      </div>
-
-      {/* Contact Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* 3. Candidate Full Name & Profession */}
+      <div className="space-y-3">
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-            <Phone className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Mobile No</span>
+            <User className="w-3.5 h-3.5 text-blue-600" />
+            <span>Full Name (Prominent on CV)</span>
           </label>
           <input
+            id="field-fullName"
+            data-field-key="fullName"
             type="text"
-            value={personal.mobile || ''}
-            onChange={(e) => updatePersonal('mobile', e.target.value)}
-            placeholder="e.g. 01781020390"
-            className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden"
+            value={personal.fullName || ''}
+            onChange={(e) => updatePersonal('fullName', e.target.value)}
+            placeholder="e.g. MOLLA KHAIRUJJAMAN AKASH"
+            className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden font-bold transition-all"
           />
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-            <Mail className="w-3.5 h-3.5 text-rose-500" />
-            <span>E-mail Address</span>
+            <Briefcase className="w-3.5 h-3.5 text-slate-500" />
+            <span>Job Title / Profession (Optional)</span>
           </label>
           <input
-            type="email"
-            value={personal.email || ''}
-            onChange={(e) => updatePersonal('email', e.target.value)}
-            placeholder="e.g. yourname@gmail.com"
-            className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden"
+            id="field-jobTitle"
+            data-field-key="jobTitle"
+            type="text"
+            value={personal.jobTitle || ''}
+            onChange={(e) => updatePersonal('jobTitle', e.target.value)}
+            placeholder="e.g. Software Engineer / Diploma Engineer"
+            className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden transition-all"
           />
         </div>
       </div>
 
-      {/* Address */}
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-amber-500" />
-          <span>Present / Contact Address</span>
-        </label>
-        <textarea
-          rows={2}
-          value={personal.address || ''}
-          onChange={(e) => updatePersonal('address', e.target.value)}
-          placeholder="e.g. Vill: Chandrapur Post: Chandrapur, Upazila: Kaligonj Zilla: Lalmonirhat"
-          className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-400 focus:outline-hidden"
-        />
+      {/* 4. Contact Numbers & Social Media Details */}
+      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+        <div className="text-xs font-bold text-slate-800 flex items-center justify-between">
+          <span>📞 Contact & Social Media Information</span>
+          <span className="text-[10px] text-slate-500 font-normal">All fields support icons</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* Mobile No */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Phone className="w-3 h-3 text-emerald-600" />
+              <span>Mobile Number</span>
+            </label>
+            <input
+              id="field-mobile"
+              data-field-key="mobile"
+              type="text"
+              value={personal.mobile || ''}
+              onChange={(e) => updatePersonal('mobile', e.target.value)}
+              placeholder="e.g. 01303948891"
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+            />
+          </div>
+
+          {/* WhatsApp Number */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <WhatsAppIcon className="w-3 h-3 text-emerald-600" />
+              <span>WhatsApp (Optional)</span>
+            </label>
+            <input
+              id="field-whatsapp"
+              data-field-key="whatsapp"
+              type="text"
+              value={personal.whatsapp || ''}
+              onChange={(e) => updatePersonal('whatsapp', e.target.value)}
+              placeholder="e.g. +8801303948891"
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+            />
+          </div>
+
+          {/* Email Address */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Mail className="w-3 h-3 text-rose-500" />
+              <span>E-mail Address</span>
+            </label>
+            <input
+              id="field-email"
+              data-field-key="email"
+              type="email"
+              value={personal.email || ''}
+              onChange={(e) => updatePersonal('email', e.target.value)}
+              placeholder="e.g. khairujjaman.999@gmail.com"
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+            />
+          </div>
+
+          {/* LinkedIn Profile */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <LinkedinIcon className="w-3 h-3 text-blue-600" />
+              <span>LinkedIn Profile</span>
+            </label>
+            <input
+              id="field-linkedin"
+              data-field-key="linkedin"
+              type="text"
+              value={personal.linkedin || ''}
+              onChange={(e) => updatePersonal('linkedin', e.target.value)}
+              placeholder="e.g. linkedin.com/in/yourname"
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+            />
+          </div>
+
+          {/* GitHub Profile */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <GithubIcon className="w-3 h-3 text-slate-800" />
+              <span>GitHub Profile</span>
+            </label>
+            <input
+              id="field-github"
+              data-field-key="github"
+              type="text"
+              value={personal.github || ''}
+              onChange={(e) => updatePersonal('github', e.target.value)}
+              placeholder="e.g. github.com/yourname"
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+            />
+          </div>
+
+          {/* Website / Portfolio */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+              <Globe className="w-3 h-3 text-indigo-600" />
+              <span>Website / Portfolio</span>
+            </label>
+            <input
+              id="field-website"
+              data-field-key="website"
+              type="text"
+              value={personal.website || ''}
+              onChange={(e) => updatePersonal('website', e.target.value)}
+              placeholder="e.g. yourportfolio.com"
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Address */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+            <MapPin className="w-3 h-3 text-amber-500" />
+            <span>Present / Contact Address</span>
+          </label>
+          <textarea
+            id="field-address"
+            data-field-key="address"
+            rows={2}
+            value={personal.address || ''}
+            onChange={(e) => updatePersonal('address', e.target.value)}
+            placeholder="e.g. h-50, seroil, shantibag, rajshahi, bangladesh"
+            className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 transition-all"
+          />
+        </div>
       </div>
 
-      {/* Photo Settings Box */}
-      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+      {/* 5. Photo Settings Box */}
+      <div id="field-photo" data-field-key="photo" className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <Image className="w-4 h-4 text-purple-600" />
@@ -276,46 +595,6 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Online Profiles (useful for International) */}
-      <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
-        <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5 text-blue-500" />
-          <span>Web Links & Profiles (Great for Tech / Global CV)</span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <LinkedinIcon className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            <input
-              type="text"
-              value={personal.linkedin || ''}
-              onChange={(e) => updatePersonal('linkedin', e.target.value)}
-              placeholder="e.g. linkedin.com/in/yourname"
-              className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <GithubIcon className="w-3.5 h-3.5 text-slate-800 shrink-0" />
-            <input
-              type="text"
-              value={personal.github || ''}
-              onChange={(e) => updatePersonal('github', e.target.value)}
-              placeholder="e.g. github.com/yourname"
-              className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Globe className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <input
-              type="text"
-              value={personal.website || ''}
-              onChange={(e) => updatePersonal('website', e.target.value)}
-              placeholder="e.g. yourwebsite.com"
-              className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white"
-            />
-          </div>
-        </div>
       </div>
     </div>
   );

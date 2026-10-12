@@ -17,6 +17,18 @@ export default function EducationListEditor({ section, onUpdate }) {
     onUpdate({ ...section, items: newItems });
   };
 
+  const handleBlurClean = (index, field) => {
+    const newItems = [...items];
+    if (newItems[index] && typeof newItems[index][field] === 'string') {
+      newItems[index][field] = newItems[index][field]
+        .replace(/^\s*\|\s*:\s*/, '')
+        .replace(/^\s*[|:]\s*/, '')
+        .replace(/\s*[|:]\s*$/, '')
+        .trim();
+      onUpdate({ ...section, items: newItems });
+    }
+  };
+
   const addItem = () => {
     const newItem = {
       id: `edu_${Date.now()}`,
@@ -91,6 +103,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.examName || ''}
                   onChange={(e) => updateItem(idx, 'examName', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'examName')}
                   placeholder="e.g. Diploma-In-Engineering or SSC"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />
@@ -104,6 +117,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.department || ''}
                   onChange={(e) => updateItem(idx, 'department', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'department')}
                   placeholder="e.g. Power Technology or Science"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />
@@ -117,6 +131,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.session || ''}
                   onChange={(e) => updateItem(idx, 'session', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'session')}
                   placeholder="e.g. 2014-2015"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />
@@ -130,6 +145,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.yearOfPassing || ''}
                   onChange={(e) => updateItem(idx, 'yearOfPassing', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'yearOfPassing')}
                   placeholder="e.g. 2018 or Appear"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />
@@ -143,6 +159,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.institution || ''}
                   onChange={(e) => updateItem(idx, 'institution', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'institution')}
                   placeholder="e.g. Rangpur Polytechnic Institute"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />
@@ -156,6 +173,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.board || ''}
                   onChange={(e) => updateItem(idx, 'board', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'board')}
                   placeholder="e.g. BTEB, Dhaka or Dinajpur"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />
@@ -169,6 +187,7 @@ export default function EducationListEditor({ section, onUpdate }) {
                   type="text"
                   value={edu.gpa || ''}
                   onChange={(e) => updateItem(idx, 'gpa', e.target.value)}
+                  onBlur={() => handleBlurClean(idx, 'gpa')}
                   placeholder="e.g. 5.00 (Out of 5.00)"
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-blue-500 text-xs"
                 />

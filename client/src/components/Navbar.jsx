@@ -10,9 +10,14 @@ import {
   Smartphone
 } from 'lucide-react';
 
+import { preProcessCvData } from '../utils/cvPreProcessor';
+
 export default function Navbar({ 
   cvData, 
   setCvData, 
+  onSwitchStyle,
+  onRestoreBackup,
+  hasBackup,
   onOpenGuide, 
   onOpenSaved,
   mobileView,
@@ -22,14 +27,24 @@ export default function Navbar({
   const isBangladeshi = cvData.styleMode === 'bangladeshi';
 
   const handlePrint = () => {
+    const originalTitle = document.title;
+    const cleanData = preProcessCvData(cvData);
+    const safeName = (cleanData.personal?.fullName || 'Curriculum_Vitae').trim().replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_');
+    document.title = `${safeName}_CV`;
+
     window.print();
+
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1500);
   };
 
   const handleExportJson = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cvData, null, 2));
+    const cleanData = preProcessCvData(cvData);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cleanData, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `${(cvData.personal?.fullName || 'My_CV').replace(/\s+/g, '_')}_data.json`);
+    downloadAnchor.setAttribute("download", `${(cleanData.personal?.fullName || 'My_CV').replace(/\s+/g, '_')}_data.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -75,32 +90,44 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Style Mode Switcher (Centered) */}
-      <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
-        <button
-          onClick={() => setCvData(prev => ({ ...prev, styleMode: 'bangladeshi' }))}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-            isBangladeshi 
-              ? 'bg-emerald-600 text-white shadow-xs' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
-          }`}
-        >
-          <span>🇧🇩</span>
-          <span className="hidden sm:inline">Bangladeshi Style</span>
-          <span className="sm:hidden">BD Style</span>
-        </button>
-        <button
-          onClick={() => setCvData(prev => ({ ...prev, styleMode: 'international' }))}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-            !isBangladeshi 
-              ? 'bg-blue-600 text-white shadow-xs' 
-              : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
-          }`}
-        >
-          <span>🌍</span>
-          <span className="hidden sm:inline">International Style</span>
-          <span className="sm:hidden">Intl Style</span>
-        </button>
+      {/* Style Mode Switcher & Undo Button (Centered) */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700">
+          <button
+            onClick={() => onSwitchStyle ? onSwitchStyle('bangladeshi') : setCvData(prev => ({ ...prev, styleMode: 'bangladeshi' }))}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              isBangladeshi 
+                ? 'bg-emerald-600 text-white shadow-xs' 
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+            }`}
+          >
+            <span>🇧🇩</span>
+            <span className="hidden sm:inline">Bangladeshi Style</span>
+            <span className="sm:hidden">BD Style</span>
+          </button>
+          <button
+            onClick={() => onSwitchStyle ? onSwitchStyle('international') : setCvData(prev => ({ ...prev, styleMode: 'international' }))}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+              !isBangladeshi 
+                ? 'bg-blue-600 text-white shadow-xs' 
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
+            }`}
+          >
+            <span>🌍</span>
+            <span className="hidden sm:inline">International Style</span>
+            <span className="sm:hidden">Intl Style</span>
+          </button>
+        </div>
+
+        {hasBackup && (
+          <button
+            onClick={onRestoreBackup}
+            className="hidden md:flex items-center gap-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
+            title="Restore previous state / undo"
+          >
+            <span>↩️ Undo</span>
+          </button>
+        )}
       </div>
 
       {/* Action Buttons */}

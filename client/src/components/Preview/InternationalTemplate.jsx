@@ -1,8 +1,8 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
-import { LinkedinIcon, GithubIcon } from '../Common/Icons';
+import { LinkedinIcon, GithubIcon, WhatsAppIcon } from '../Common/Icons';
 
-export default function InternationalTemplate({ cvData }) {
+export default function InternationalTemplate({ cvData, onSectionClick, activeSectionId }) {
   const { design = {}, personal = {}, sections = [] } = cvData || {};
   const activeSections = sections.filter(s => s.enabled !== false);
   const accentColor = design.accentColor || '#2563eb';
@@ -10,12 +10,13 @@ export default function InternationalTemplate({ cvData }) {
   // Font family
   const getFontClass = () => {
     switch (design.fontFamily) {
+      case 'Calibri': return 'font-calibri';
+      case 'Arial': return 'font-arial';
+      case 'Roboto': return 'font-roboto';
       case 'Times New Roman': return 'font-times';
       case 'Georgia': return 'font-serif-classic';
-      case 'Arial': return 'font-arial';
       case 'Garamond': return 'font-garamond';
       case 'Inter':
-      case 'Roboto':
       default:
         return 'font-inter';
     }
@@ -33,52 +34,81 @@ export default function InternationalTemplate({ cvData }) {
 
   return (
     <div className={`w-full bg-white text-slate-800 p-8 sm:p-12 print:p-0 ${getFontClass()} ${getFontSizeClass()} select-text`}>
-      {/* Header Container */}
-      <header className="border-b pb-6 mb-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-6" style={{ borderColor: `${accentColor}33` }}>
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mb-1" style={{ color: '#0f172a' }}>
+      {/* Main CV Header Container */}
+      <header 
+        data-section-id="personal"
+        className={`main-cv-header border-b pb-6 mb-6 interactive-preview-section ${
+          activeSectionId === 'personal' ? 'active-focused-section' : ''
+        }`}
+        title="Click to edit Personal Info & Contacts"
+        style={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingTop: '24px',
+          marginTop: '20px',
+          borderColor: `${accentColor}33` 
+        }}
+      >
+        {/* Left Column: Candidate Name (<h1>) & Contact Details */}
+        <div className="flex flex-col items-start text-left flex-1 min-w-0 pr-4">
+          <h1 
+            data-field-key="fullName"
+            className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight" 
+            style={{ color: '#0f172a', marginBottom: '4px' }}
+          >
             {personal.fullName || 'Alex Morgan'}
           </h1>
           {personal.jobTitle && (
-            <div className="text-base sm:text-lg font-semibold mb-3" style={{ color: accentColor }}>
+            <div 
+              data-field-key="jobTitle"
+              className="text-base sm:text-lg font-semibold mb-2" 
+              style={{ color: accentColor }}
+            >
               {personal.jobTitle}
             </div>
           )}
 
-          {/* Contact Bar */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
+          {/* Contact Bar with compact spacing */}
+          <div className="flex flex-wrap items-center gap-x-4 text-xs text-slate-600" style={{ gap: '4px' }}>
             {personal.email && (
-              <a href={`mailto:${personal.email}`} className="flex items-center gap-1.5 hover:text-blue-600 transition">
+              <a data-field-key="email" href={`mailto:${personal.email}`} className="flex items-center gap-1.5 hover:text-blue-600 transition" style={{ margin: '2px 0' }}>
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
                 <span>{personal.email}</span>
               </a>
             )}
             {personal.mobile && (
-              <span className="flex items-center gap-1.5">
+              <span data-field-key="mobile" className="flex items-center gap-1.5" style={{ margin: '2px 0' }}>
                 <Phone className="w-3.5 h-3.5 text-slate-400" />
                 <span>{personal.mobile}</span>
               </span>
             )}
+            {personal.whatsapp && (
+              <span data-field-key="whatsapp" className="flex items-center gap-1.5" style={{ margin: '2px 0' }}>
+                <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{personal.whatsapp}</span>
+              </span>
+            )}
             {personal.address && (
-              <span className="flex items-center gap-1.5">
+              <span data-field-key="address" className="flex items-center gap-1.5" style={{ margin: '2px 0' }}>
                 <MapPin className="w-3.5 h-3.5 text-slate-400" />
                 <span>{personal.address}</span>
               </span>
             )}
             {personal.linkedin && (
-              <a href={`https://${personal.linkedin.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-blue-600 transition">
+              <a data-field-key="linkedin" href={`https://${personal.linkedin.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-blue-600 transition" style={{ margin: '2px 0' }}>
                 <LinkedinIcon className="w-3.5 h-3.5 text-slate-400" />
                 <span>{personal.linkedin}</span>
               </a>
             )}
             {personal.github && (
-              <a href={`https://${personal.github.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-blue-600 transition">
+              <a data-field-key="github" href={`https://${personal.github.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-blue-600 transition" style={{ margin: '2px 0' }}>
                 <GithubIcon className="w-3.5 h-3.5 text-slate-400" />
                 <span>{personal.github}</span>
               </a>
             )}
             {personal.website && (
-              <a href={`https://${personal.website.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-blue-600 transition">
+              <a data-field-key="website" href={`https://${personal.website.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-blue-600 transition" style={{ margin: '2px 0' }}>
                 <Globe className="w-3.5 h-3.5 text-slate-400" />
                 <span>{personal.website}</span>
               </a>
@@ -86,9 +116,9 @@ export default function InternationalTemplate({ cvData }) {
           </div>
         </div>
 
-        {/* Profile Photo */}
+        {/* Profile Photo Container (Right-aligned) */}
         {design.photo?.show && design.photo?.url && (
-          <div className="shrink-0">
+          <div data-field-key="photo" className="shrink-0 ml-4 self-center cursor-pointer" title="Click to edit Photo">
             <div className={`overflow-hidden border-2 shadow-sm ${
               design.photo.shape === 'circle' ? 'rounded-full w-24 h-24' :
               design.photo.shape === 'square' ? 'rounded-xl w-24 h-24' : 'rounded-lg w-20 h-24'
@@ -106,7 +136,14 @@ export default function InternationalTemplate({ cvData }) {
       {/* Dynamic Sections */}
       <div className="space-y-6">
         {activeSections.map((sec) => (
-          <section key={sec.id} className="break-inside-avoid">
+          <section 
+            key={sec.id} 
+            data-section-id={sec.id}
+            className={`break-inside-avoid interactive-preview-section ${
+              activeSectionId === sec.id ? 'active-focused-section' : ''
+            }`}
+            title={`Click to edit "${sec.title || 'this section'}" in the left panel`}
+          >
             {/* Section Header */}
             <div className="flex items-center gap-3 mb-3 pb-1 border-b" style={{ borderColor: `${accentColor}25` }}>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900" style={{ color: accentColor }}>

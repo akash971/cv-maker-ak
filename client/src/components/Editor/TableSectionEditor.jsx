@@ -38,6 +38,22 @@ export default function TableSectionEditor({ section, onUpdate }) {
     onUpdate({ ...section, rows: newRows });
   };
 
+  const cleanCellOnBlur = (rowIdx, colIdx) => {
+    const newRows = rows.map((row, r) => {
+      if (r !== rowIdx) return row;
+      const updatedRow = [...row];
+      if (typeof updatedRow[colIdx] === 'string') {
+        updatedRow[colIdx] = updatedRow[colIdx]
+          .replace(/^\s*\|\s*:\s*/, '')
+          .replace(/^\s*[|:]\s*/, '')
+          .replace(/\s*[|:]\s*$/, '')
+          .trim();
+      }
+      return updatedRow;
+    });
+    onUpdate({ ...section, rows: newRows });
+  };
+
   const addRow = () => {
     const emptyRow = new Array(headers.length).fill('');
     emptyRow[0] = `${rows.length + 1}. `;
@@ -127,6 +143,7 @@ export default function TableSectionEditor({ section, onUpdate }) {
                     type="text"
                     value={row[colIdx] || ''}
                     onChange={(e) => updateCell(rIdx, colIdx, e.target.value)}
+                    onBlur={() => cleanCellOnBlur(rIdx, colIdx)}
                     placeholder={`e.g. ${colIdx === 0 ? 'Bengali' : 'Good'}`}
                     className="w-full text-xs px-2 py-1 rounded border border-slate-300 bg-white"
                   />

@@ -61,7 +61,13 @@ export default function App() {
         localStorage.setItem('cv_user_personal_profile', JSON.stringify(cvData.personal));
       }
     } catch (e) {
-      console.warn('Auto-save failed', e);
+      console.warn('Auto-save hit storage limit, clearing old undo backups', e);
+      try {
+        localStorage.removeItem('cv_backup_history');
+        localStorage.setItem('active_cv_draft', JSON.stringify(cvData));
+      } catch (retryErr) {
+        console.warn('Auto-save fallback failed', retryErr);
+      }
     }
   }, [cvData]);
 
@@ -71,7 +77,7 @@ export default function App() {
     const currentMode = cvData.styleMode || 'bangladeshi';
 
     try {
-      // Save backup snapshot before switching so user can easily undo
+      // Save backup snapshot before switching so user can easily undo (capped to 6 snapshots)
       const history = JSON.parse(localStorage.getItem('cv_backup_history') || '[]');
       history.unshift({
         timestamp: Date.now(),
@@ -79,7 +85,7 @@ export default function App() {
         data: JSON.parse(JSON.stringify(cvData)),
         description: `Snapshot before switching from ${currentMode} to ${targetMode}`
       });
-      localStorage.setItem('cv_backup_history', JSON.stringify(history.slice(0, 20)));
+      localStorage.setItem('cv_backup_history', JSON.stringify(history.slice(0, 6)));
       setHasBackup(true);
     } catch (e) {
       console.warn('Failed to save draft backup', e);

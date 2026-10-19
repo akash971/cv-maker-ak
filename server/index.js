@@ -1,51 +1,75 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
-const multer = require('multer');
+const fs = require('fs');
 const { bangladeshiClassicCV, internationalModernCV } = require('./templates');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// Dynamic CORS configuration accepting frontend origin environment variables
+const clientUrls = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map(url => url.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+const defaultDevOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow non-browser requests (server-to-server, curl, mobile apps, health checks)
+    if (!origin) return callback(null, true);
+
+    // If wildcard or CLIENT_URL is not set / set to '*'
+    if (!process.env.CLIENT_URL || process.env.CLIENT_URL === '*' || clientUrls.includes('*')) {
+      return callback(null, true);
+    }
+
+    // Check configured CLIENT_URL origins
+    if (clientUrls.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // In non-production, allow common localhost origins
+    if (process.env.NODE_ENV !== 'production' && (
+      defaultDevOrigins.includes(origin) || 
+      /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)
+    )) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Body parsers (allows JSON up to 10MB to accommodate base64 payload if sent to API)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Directories
-const DATA_DIR = path.join(__dirname, 'data');
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// In-memory stateless CV storage for server runtime (Zero local file-system writes/reads)
+const inMemoryCvStore = new Map();
+inMemoryCvStore.set('bangladeshi_classic', { ...bangladeshiClassicCV, id: 'bangladeshi_classic' });
+inMemoryCvStore.set('international_modern', { ...internationalModernCV, id: 'international_modern' });
 
-// Serve static uploads
-app.use('/uploads', express.static(UPLOAD_DIR));
-
-// Setup multer for photo uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.png';
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `photo-${uniqueSuffix}${ext}`);
-  }
-});
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('Only image files are allowed!'), false);
-  }
-});
-
-// API Routes
+// API Health
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    mode: 'stateless',
+    timestamp: new Date().toISOString() 
+  });
 });
 
-// Get preset templates
+// Preset templates
 app.get('/api/templates', (req, res) => {
   res.json({
     templates: [
@@ -65,38 +89,29 @@ app.get('/api/templates', (req, res) => {
   });
 });
 
-// List all saved CVs
+// Helper to sanitize CV id
+const sanitizeId = (id) => (id || '').toString().replace(/[^a-zA-Z0-9_-]/g, '');
+
+// List all saved CVs (In-Memory, Stateless)
 app.get('/api/cv/list', (req, res) => {
   try {
-    const files = fs.readdirSync(DATA_DIR).filter(f => f.endsWith('.json'));
-    const list = files.map(file => {
-      try {
-        const content = JSON.parse(fs.readFileSync(path.join(DATA_DIR, file), 'utf-8'));
-        return {
-          id: content.id || file.replace('.json', ''),
-          title: content.title || 'Untitled CV',
-          name: content.personal?.fullName || 'Anonymous',
-          styleMode: content.styleMode || 'bangladeshi',
-          updatedAt: content.updatedAt || fs.statSync(path.join(DATA_DIR, file)).mtime
-        };
-      } catch (e) {
-        return null;
-      }
-    }).filter(Boolean);
+    const list = Array.from(inMemoryCvStore.values()).map(cv => ({
+      id: cv.id,
+      title: cv.title || 'Untitled CV',
+      name: cv.personal?.fullName || 'Anonymous',
+      styleMode: cv.styleMode || 'bangladeshi',
+      updatedAt: cv.updatedAt || new Date().toISOString()
+    }));
     res.json({ success: true, count: list.length, cvs: list });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Helper to sanitize CV id and prevent path traversal
-const sanitizeId = (id) => (id || '').toString().replace(/[^a-zA-Z0-9_-]/g, '');
-
-// Get CV by ID
+// Get CV by ID (In-Memory, Stateless)
 app.get('/api/cv/:id', (req, res) => {
   try {
     const rawId = req.params.id;
-    // Check preset first
     if (rawId === 'bangladeshi_classic' || rawId === 'bd_classic_preset') {
       return res.json({ success: true, cv: bangladeshiClassicCV });
     }
@@ -105,22 +120,16 @@ app.get('/api/cv/:id', (req, res) => {
     }
 
     const id = sanitizeId(rawId);
-    if (!id) {
-      return res.status(400).json({ success: false, error: 'Invalid CV ID' });
+    if (!id || !inMemoryCvStore.has(id)) {
+      return res.status(404).json({ success: false, error: 'CV not found in memory' });
     }
-
-    const filePath = path.join(DATA_DIR, `${id}.json`);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ success: false, error: 'CV not found' });
-    }
-    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    res.json({ success: true, cv: data });
+    res.json({ success: true, cv: inMemoryCvStore.get(id) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Save or update CV
+// Save or update CV (In-Memory, Stateless)
 app.post('/api/cv/save', (req, res) => {
   try {
     const cvData = req.body;
@@ -133,25 +142,23 @@ app.post('/api/cv/save', (req, res) => {
       id,
       updatedAt: new Date().toISOString()
     };
-    const filePath = path.join(DATA_DIR, `${id}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2), 'utf-8');
-    res.json({ success: true, id, message: 'CV saved successfully!' });
+    inMemoryCvStore.set(id, payload);
+    res.json({ success: true, id, message: 'CV saved successfully (stateless in-memory)!' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Delete CV
+// Delete CV (In-Memory, Stateless)
 app.delete('/api/cv/:id', (req, res) => {
   try {
     const id = sanitizeId(req.params.id);
     if (!id) {
       return res.status(400).json({ success: false, error: 'Invalid CV ID' });
     }
-    const filePath = path.join(DATA_DIR, `${id}.json`);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      res.json({ success: true, message: 'CV deleted successfully' });
+    if (inMemoryCvStore.has(id)) {
+      inMemoryCvStore.delete(id);
+      res.json({ success: true, message: 'CV deleted successfully from memory' });
     } else {
       res.status(404).json({ success: false, error: 'CV not found' });
     }
@@ -160,25 +167,12 @@ app.delete('/api/cv/:id', (req, res) => {
   }
 });
 
-// Upload profile photo
-app.post('/api/cv/upload-photo', upload.single('photo'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, error: 'No image uploaded' });
-    }
-    const photoUrl = `/uploads/${req.file.filename}`;
-    res.json({ success: true, photoUrl });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Serve frontend if built
+// Serve frontend if built (for monorepo single-service deployments)
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
 if (fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
   app.use((req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+    if (req.path.startsWith('/api')) {
       return next();
     }
     res.sendFile(path.join(clientDist, 'index.html'));
@@ -190,6 +184,7 @@ app.listen(PORT, () => {
   console.log(`===============================================`);
   console.log(`🚀 CV Maker Backend Server running on port ${PORT}`);
   console.log(`📡 API Health: http://localhost:${PORT}/api/health`);
-  console.log(`📁 Uploads dir: ${UPLOAD_DIR}`);
+  console.log(`🌐 Configured CLIENT_URL: ${process.env.CLIENT_URL || 'All origins allowed (*)'}`);
+  console.log(`💾 Architecture: 100% Stateless (Zero disk writes/reads)`);
   console.log(`===============================================`);
 });

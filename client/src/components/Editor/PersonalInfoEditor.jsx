@@ -60,12 +60,93 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (JPG, PNG, WebP).');
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = () => {
-      updatePhoto('url', reader.result);
-      updatePhoto('show', true);
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result;
+      if (!dataUrl) return;
+
+      // Optimize image resolution for passport photo usage to protect localStorage quota
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxDim = 800; // Optimal for sharp 300DPI passport printing
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const optimizedBase64 = canvas.toDataURL(mimeType, 0.9);
+
+          setCvData(prev => ({
+            ...prev,
+            design: {
+              ...prev.design,
+              photo: {
+                ...prev.design?.photo,
+                url: optimizedBase64,
+                show: true
+              }
+            }
+          }));
+        } catch (err) {
+          // Direct fallback to raw Base64 data URL
+          setCvData(prev => ({
+            ...prev,
+            design: {
+              ...prev.design,
+              photo: {
+                ...prev.design?.photo,
+                url: dataUrl,
+                show: true
+              }
+            }
+          }));
+        }
+      };
+
+      img.onerror = () => {
+        setCvData(prev => ({
+          ...prev,
+          design: {
+            ...prev.design,
+            photo: {
+              ...prev.design?.photo,
+              url: dataUrl,
+              show: true
+            }
+          }
+        }));
+      };
+
+      img.src = dataUrl;
     };
+
+    reader.onerror = () => {
+      alert('Failed to read image file.');
+    };
+
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const headerAlignment = design.headerAlignment || 'center';

@@ -28,7 +28,8 @@ A full-stack, customizable, and intuitive web application to build and export pr
   - Custom Color Palette: Charcoal, Navy Blue, BD Green, Crimson, Purple, or any custom Hex code.
   - Text density and page margin controls.
 - **Photo Customization**:
-  - Upload from device or paste image URL.
+  - Direct Base64 conversion via `FileReader` — zero server uploads or disk storage needed.
+  - Automatically scales/compresses device photos to optimize `localStorage` and ensure crystal-clear 300DPI print.
   - Toggle Photo ON/OFF.
   - Shape: Passport rectangle (35×45mm), Square, or Circle.
   - Positioning: Top Right, Top Left, Centered.
@@ -39,15 +40,14 @@ A full-stack, customizable, and intuitive web application to build and export pr
   - `[🇧🇩 Load BD Demo]` — Pre-fills the exact details from the sample photo (Md. Emran Hossen Biplob, Rangpur Polytechnic Institute, etc.).
   - `[🌍 Load Intl Demo]` — Pre-fills a modern software engineer resume.
 - **Interactive Beginner Guide**: Step-by-step tutorial modal explaining the app in simple language.
-- **Auto-Save**: Changes are saved locally on every keystroke so progress is never lost.
+- **Auto-Save & Storage**: Changes are automatically saved to browser `localStorage` on every keystroke. Saved versions library stores full CV records locally and offline.
 
-### 3. Full-Stack Node.js Backend & Exporting
-- **Node.js Express Server**:
-  - `/api/cv/save` — Save CVs to disk (`server/data/`)
-  - `/api/cv/list` — List all saved CVs with dates and styles
-  - `/api/cv/:id` — Load or delete saved CVs
-  - `/api/cv/upload-photo` — Multipart upload for passport photos
-  - `/api/templates` — Template presets
+### 3. Stateless Backend & Seamless Free Hosting Deployment
+- **100% Stateless Architecture**:
+  - No file-system reads or writes (`fs`) in API operations.
+  - In-memory template presets & runtime cache.
+  - Dynamic CORS: Configure `CLIENT_URL` (e.g. `https://my-cv-app.vercel.app`) to support separate frontend/backend deployments.
+  - Fully compatible with stateless hosts (Render, Railway, Vercel, Netlify, Fly.io).
 - **Exporting Options**:
   - 🖨️ **Print / Save as PDF** — High-fidelity browser vector print to PDF with print-optimized CSS.
   - 💾 **Export JSON** — Download complete CV data file.
@@ -55,19 +55,25 @@ A full-stack, customizable, and intuitive web application to build and export pr
 
 ---
 
-## 🚀 How to Run
+## 🚀 How to Run & Deploy
 
-### Step 1: Start the Backend & Web App
+### Environment Variables
+| Variable | Description | Default |
+|---|---|---|
+| `PORT` | Backend port | `5000` |
+| `CLIENT_URL` | Allowed frontend origin(s) for CORS (comma-separated or `*`) | `*` (all origins) |
+
+### Step 1: Start Backend
 ```bash
 npm start
 ```
-Open your browser at: **`http://localhost:5000`**
+Runs at: **`http://localhost:5000`**
 
-### Step 2: (Optional) Run Vite Dev Server for Frontend Development
+### Step 2: Run Frontend Development Server
 ```bash
 npm run client
 ```
-Runs the Vite development server with hot-module reloading at: **`http://localhost:5173`**
+Runs Vite hot-module reloading at: **`http://localhost:5173`**
 
 ---
 
@@ -77,10 +83,8 @@ Runs the Vite development server with hot-module reloading at: **`http://localho
 CV maker/
 ├── package.json               # Root scripts and server dependencies
 ├── server/
-│   ├── index.js               # Express REST API & static server
+│   ├── index.js               # Stateless Express REST API & static server
 │   ├── templates.js           # Built-in Bangladeshi & International presets
-│   ├── data/                  # Server-saved CV JSON files
-│   └── uploads/               # Uploaded candidate photos
 ├── client/
 │   ├── vite.config.js         # Vite configuration with Tailwind & API proxy
 │   ├── index.html             # Entry HTML with Google Fonts

@@ -163,15 +163,15 @@ export default function AddSectionModal({ isOpen, onClose, onAddSection }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-200 flex flex-col max-h-[88dvh]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div>
-            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
               <span>✨ Add Any Section You Want</span>
             </h3>
-            <p className="text-xs text-slate-500">Pick what you want to add to your CV. No restrictions!</p>
+            <p className="text-[11px] sm:text-xs text-slate-500">Pick what you want to add to your CV. No restrictions!</p>
           </div>
           <button
             onClick={onClose}

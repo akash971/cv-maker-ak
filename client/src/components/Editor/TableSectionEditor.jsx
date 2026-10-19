@@ -132,33 +132,35 @@ export default function TableSectionEditor({ section, onUpdate }) {
         </div>
 
         {/* Rows */}
-        <div className="space-y-2">
-          {rows.map((row, rIdx) => (
-            <div key={rIdx} className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-              <span className="text-xs font-semibold text-slate-400 w-4">{rIdx + 1}</span>
-              <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))` }}>
-                {headers.map((_, colIdx) => (
-                  <input
-                    key={colIdx}
-                    type="text"
-                    value={row[colIdx] || ''}
-                    onChange={(e) => updateCell(rIdx, colIdx, e.target.value)}
-                    onBlur={() => cleanCellOnBlur(rIdx, colIdx)}
-                    placeholder={`e.g. ${colIdx === 0 ? 'Bengali' : 'Good'}`}
-                    className="w-full text-xs px-2 py-1 rounded border border-slate-300 bg-white"
-                  />
-                ))}
+        <div className="overflow-x-auto pb-1">
+          <div className="space-y-2 min-w-[340px] sm:min-w-0">
+            {rows.map((row, rIdx) => (
+              <div key={rIdx} className="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <span className="text-xs font-semibold text-slate-400 w-4">{rIdx + 1}</span>
+                <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(85px, 1fr))` }}>
+                  {headers.map((_, colIdx) => (
+                    <input
+                      key={colIdx}
+                      type="text"
+                      value={row[colIdx] || ''}
+                      onChange={(e) => updateCell(rIdx, colIdx, e.target.value)}
+                      onBlur={() => cleanCellOnBlur(rIdx, colIdx)}
+                      placeholder={`e.g. ${colIdx === 0 ? 'Bengali' : 'Good'}`}
+                      className="w-full text-xs px-2 py-1.5 rounded border border-slate-300 bg-white"
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeRow(rIdx)}
+                  className="text-slate-400 hover:text-rose-500 p-1.5 cursor-pointer rounded"
+                  title="Remove row"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => removeRow(rIdx)}
-                className="text-slate-400 hover:text-rose-500 p-1"
-                title="Remove row"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <button

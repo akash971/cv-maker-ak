@@ -4,7 +4,9 @@ import EditorPanel from './components/Editor/EditorPanel';
 import PreviewPanel from './components/Preview/PreviewPanel';
 import Class5GuideModal from './components/Class5GuideModal';
 import SavedCvsModal from './components/SavedCvsModal';
-import { BANGLADESHI_DEMO, INTERNATIONAL_DEMO } from './data/defaultTemplates';
+import MobileBottomNav from './components/MobileBottomNav';
+import { BANGLADESHI_DEMO } from './data/defaultTemplates';
+import { preProcessCvData } from './utils/cvPreProcessor';
 
 export default function App() {
   const [cvData, setCvData] = useState(() => {
@@ -37,6 +39,19 @@ export default function App() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   const [hasBackup, setHasBackup] = useState(false);
+
+  const handleTriggerPrint = () => {
+    const originalTitle = document.title;
+    const cleanData = preProcessCvData(cvData);
+    const safeName = (cleanData.personal?.fullName || 'Curriculum_Vitae').trim().replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_');
+    document.title = `${safeName}_CV`;
+
+    window.print();
+
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1500);
+  };
 
   // Check if backup history exists
   useEffect(() => {
@@ -230,7 +245,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-100 font-sans print:h-auto print:w-auto print:overflow-visible print:bg-white">
+    <div className="flex flex-col h-[100dvh] w-full max-w-full overflow-hidden bg-slate-100 font-sans print:h-auto print:w-auto print:overflow-visible print:bg-white relative">
       {/* Top Navigation */}
       <Navbar
         cvData={cvData}
@@ -246,7 +261,7 @@ export default function App() {
 
       {/* Quick Recovery Banner if user lost entered details */}
       {isDemoName && (
-        <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 flex items-center justify-between gap-3 text-xs text-amber-900 no-print">
+        <div className="bg-amber-100 border-b border-amber-300 px-3 sm:px-4 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-amber-900 no-print">
           <div className="flex items-center gap-2">
             <span className="text-base">💡</span>
             <span className="font-medium">
@@ -256,18 +271,18 @@ export default function App() {
           <button
             type="button"
             onClick={restoreAkashData}
-            className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition shrink-0 cursor-pointer shadow-2xs"
+            className="w-full sm:w-auto text-center px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition shrink-0 cursor-pointer shadow-2xs"
           >
-            ↩️ Restore Molla Khairujjaman Akash's Data
+            ↩️ Restore Molla Khairujjaman Akash&apos;s Data
           </button>
         </div>
       )}
 
       {/* Main Split-Screen Workspace */}
-      <main className="flex-1 flex overflow-hidden print:overflow-visible print:block print:h-auto">
+      <main className="flex-1 flex overflow-hidden print:overflow-visible print:block print:h-auto relative">
         {/* Left Side: Editor Panel (Hidden on print) */}
         <section 
-          className={`w-full lg:w-[480px] xl:w-[540px] shrink-0 h-full overflow-hidden border-r border-slate-300 no-print print:hidden ${
+          className={`w-full lg:w-[480px] xl:w-[540px] shrink-0 h-full overflow-hidden border-r border-slate-300 no-print print:hidden pb-16 lg:pb-0 ${
             mobileView === 'edit' ? 'block' : 'hidden lg:block'
           }`}
         >
@@ -299,6 +314,16 @@ export default function App() {
           />
         </section>
       </main>
+
+      {/* Mobile Sticky Bottom Navigation Bar */}
+      <MobileBottomNav
+        mobileView={mobileView}
+        setMobileView={setMobileView}
+        activeSidebarTab={activeSidebarTab}
+        setActiveSidebarTab={setActiveSidebarTab}
+        onOpenSaved={() => setIsSavedModalOpen(true)}
+        onPrint={handleTriggerPrint}
+      />
 
       {/* Class 5 Easy Walkthrough Modal */}
       <Class5GuideModal

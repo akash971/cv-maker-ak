@@ -21,9 +21,9 @@ export default function EditorPanel({
   const setActiveTab = externalSetActiveTab || setInternalActiveTab;
 
   const tabs = [
-    { id: 'personal', label: '1. Basic Info', icon: User, color: 'text-blue-600' },
-    { id: 'sections', label: '2. CV Sections', icon: Layers, color: 'text-emerald-600' },
-    { id: 'style', label: '3. Look & Style', icon: Palette, color: 'text-purple-600' },
+    { id: 'personal', label: '1. Basic Info', shortLabel: '1. Info', icon: User, color: 'text-blue-600' },
+    { id: 'sections', label: '2. CV Sections', shortLabel: '2. Sections', icon: Layers, color: 'text-emerald-600' },
+    { id: 'style', label: '3. Look & Style', shortLabel: '3. Style', icon: Palette, color: 'text-purple-600' },
   ];
 
   const handleLoadSampleData = () => {
@@ -45,7 +45,7 @@ export default function EditorPanel({
           data: JSON.parse(JSON.stringify(cvData)),
           description: `Backup before loading ${styleName} sample`
         });
-        localStorage.setItem('cv_backup_history', JSON.stringify(history.slice(0, 20)));
+        localStorage.setItem('cv_backup_history', JSON.stringify(history.slice(0, 6)));
       } catch (e) {
         console.warn('Backup error', e);
       }
@@ -79,26 +79,27 @@ export default function EditorPanel({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-2 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer ${
                   isActive
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 }`}
               >
                 <Icon className={`w-3.5 h-3.5 ${isActive ? tab.color : 'text-slate-400'}`} />
-                <span>{tab.label}</span>
+                <span className="hidden xs:inline">{tab.label}</span>
+                <span className="xs:hidden">{tab.shortLabel}</span>
               </button>
             );
           })}
         </div>
 
         {/* Style Switcher & Safe Helper Bar */}
-        <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-slate-200/60">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 mt-2 pt-1.5 border-t border-slate-200/60">
           <div className="flex items-center gap-1 bg-slate-200/80 p-0.5 rounded-lg text-xs">
             <button
               type="button"
               onClick={() => onSwitchStyle ? onSwitchStyle('bangladeshi') : setCvData(prev => ({ ...prev, styleMode: 'bangladeshi' }))}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                 cvData.styleMode === 'bangladeshi'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
@@ -106,12 +107,13 @@ export default function EditorPanel({
               title="Switch to Bangladeshi Style (Preserves all your data)"
             >
               <span>🇧🇩</span>
-              <span>BD Style</span>
+              <span className="hidden xs:inline">BD Style</span>
+              <span className="xs:hidden">BD</span>
             </button>
             <button
               type="button"
               onClick={() => onSwitchStyle ? onSwitchStyle('international') : setCvData(prev => ({ ...prev, styleMode: 'international' }))}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+              className={`px-2 sm:px-2.5 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                 cvData.styleMode !== 'bangladeshi'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
@@ -119,11 +121,12 @@ export default function EditorPanel({
               title="Switch to International Style (Preserves all your data)"
             >
               <span>🌍</span>
-              <span>Intl Style</span>
+              <span className="hidden xs:inline">Intl Style</span>
+              <span className="xs:hidden">Intl</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {hasBackup && (
               <button
                 type="button"
@@ -143,14 +146,14 @@ export default function EditorPanel({
               title="Fill sample text without deleting your personal details"
             >
               <Sparkles className="w-3 h-3 text-amber-500" />
-              <span>Fill Sample</span>
+              <span>Sample</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Editor Content Body */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5">
         {activeTab === 'personal' && (
           <PersonalInfoEditor cvData={cvData} setCvData={setCvData} />
         )}

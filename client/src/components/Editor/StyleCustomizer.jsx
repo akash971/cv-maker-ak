@@ -181,7 +181,7 @@ export default function StyleCustomizer({ cvData, setCvData }) {
       {/* Font Size & Spacing Sliders */}
       <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
         <div className="text-xs font-bold text-slate-700">Text Size & Density</div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
           <div>
             <label className="block text-[11px] font-semibold text-slate-600 mb-1">Text Size</label>
             <select

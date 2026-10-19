@@ -193,26 +193,26 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[88dvh]">
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div className="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
           <div className="flex items-center gap-2">
-            <FolderOpen className="w-5 h-5 text-blue-600" />
+            <FolderOpen className="w-5 h-5 text-blue-600 shrink-0" />
             <div>
-              <h3 className="text-base font-bold text-slate-800">Saved CVs & Storage</h3>
-              <p className="text-[11px] text-slate-500">Stateless local storage & portable JSON backups</p>
+              <h3 className="text-sm sm:text-base font-bold text-slate-800">Saved CVs & Storage</h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-500">Stateless local storage & portable JSON backups</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200/60 transition cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Save Current CV Section */}
-        <div className="p-4 border-b border-slate-100 bg-slate-50/50 space-y-2">
+        <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/50 space-y-2 shrink-0">
           <label className="block text-xs font-bold text-slate-700">Save Current CV as:</label>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
               value={saveTitle}
@@ -223,7 +223,7 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
             <button
               onClick={handleSaveVersion}
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
               <span>Save Version</span>
@@ -238,7 +238,7 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
         </div>
 
         {/* Quick JSON Import Action */}
-        <div className="px-4 py-2 bg-blue-50/50 border-b border-slate-100 flex items-center justify-between text-xs">
+        <div className="px-3.5 sm:px-4 py-2 bg-blue-50/50 border-b border-slate-100 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-1 text-xs shrink-0">
           <span className="text-slate-600 text-[11px]">Have a previous CV backup file?</span>
           <input
             type="file"
@@ -249,7 +249,7 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
           />
           <button
             onClick={() => importInputRef.current?.click()}
-            className="flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold text-xs py-1 px-2 rounded-lg hover:bg-blue-100 transition cursor-pointer"
+            className="flex items-center gap-1 text-blue-700 hover:text-blue-900 font-semibold text-xs py-0.5 px-1.5 rounded-lg hover:bg-blue-100 transition cursor-pointer"
           >
             <Upload className="w-3 h-3" />
             <span>Import JSON to Library</span>

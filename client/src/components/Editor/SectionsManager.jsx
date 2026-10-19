@@ -62,9 +62,11 @@ export default function SectionsManager({
     setCvData(prev => ({ ...prev, sections: newSections }));
   };
 
-  const deleteSection = (id) => {
-    const newSections = sections.filter(s => s.id !== id);
-    setCvData(prev => ({ ...prev, sections: newSections }));
+  const deleteSection = (id, title) => {
+    if (window.confirm(`Are you sure you want to delete "${title || 'this section'}"?`)) {
+      const newSections = sections.filter(s => s.id !== id);
+      setCvData(prev => ({ ...prev, sections: newSections }));
+    }
   };
 
   const handleAddSection = (newSec) => {
@@ -153,13 +155,13 @@ export default function SectionsManager({
                 </button>
 
                 {/* Section Action Controls */}
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                   {/* Move Up */}
                   <button
                     type="button"
                     disabled={idx === 0}
-                    onClick={() => moveUp(idx)}
-                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 disabled:opacity-20 transition"
+                    onClick={(e) => { e.stopPropagation(); moveUp(idx); }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 disabled:opacity-20 transition cursor-pointer active:scale-95"
                     title="Move section up"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -169,8 +171,8 @@ export default function SectionsManager({
                   <button
                     type="button"
                     disabled={idx === sections.length - 1}
-                    onClick={() => moveDown(idx)}
-                    className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 disabled:opacity-20 transition"
+                    onClick={(e) => { e.stopPropagation(); moveDown(idx); }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 disabled:opacity-20 transition cursor-pointer active:scale-95"
                     title="Move section down"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
@@ -179,8 +181,8 @@ export default function SectionsManager({
                   {/* Show / Hide */}
                   <button
                     type="button"
-                    onClick={() => toggleVisibility(sec.id)}
-                    className={`p-1 rounded transition ${isEnabled ? 'text-slate-500 hover:text-slate-700' : 'text-amber-500'}`}
+                    onClick={(e) => { e.stopPropagation(); toggleVisibility(sec.id); }}
+                    className={`p-1.5 rounded-lg transition cursor-pointer active:scale-95 ${isEnabled ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/60' : 'text-amber-500 bg-amber-50'}`}
                     title={isEnabled ? 'Hide from CV' : 'Show on CV'}
                   >
                     {isEnabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -189,8 +191,8 @@ export default function SectionsManager({
                   {/* Delete */}
                   <button
                     type="button"
-                    onClick={() => deleteSection(sec.id)}
-                    className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                    onClick={(e) => { e.stopPropagation(); deleteSection(sec.id, sec.title); }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer active:scale-95"
                     title="Delete section completely"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -200,7 +202,7 @@ export default function SectionsManager({
                   <button
                     type="button"
                     onClick={() => setOpenSectionId(isOpen ? null : sec.id)}
-                    className="p-1 text-slate-400 hover:text-slate-700"
+                    className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
                   >
                     <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
                   </button>

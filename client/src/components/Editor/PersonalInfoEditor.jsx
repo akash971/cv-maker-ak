@@ -647,7 +647,7 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
             </div>
 
             {/* Shape and position controls */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-600 mb-1">Photo Shape</label>
                 <select

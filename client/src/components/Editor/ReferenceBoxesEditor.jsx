@@ -92,7 +92,7 @@ export default function ReferenceBoxesEditor({ section, onUpdate }) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Designation</label>
                   <input
@@ -115,7 +115,7 @@ export default function ReferenceBoxesEditor({ section, onUpdate }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-medium text-slate-600 mb-0.5">Phone / Mobile</label>
                   <input

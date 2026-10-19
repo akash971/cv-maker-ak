@@ -1,34 +1,34 @@
 import React from 'react';
-import { X, CheckCircle, Sparkles, Smile, Printer, ArrowRight } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 
 export default function Class5GuideModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[88dvh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
-        <div className="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">🎉</span>
+        <div className="bg-linear-to-r from-blue-600 to-indigo-600 text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <span className="text-2xl sm:text-3xl">🎉</span>
             <div>
-              <h3 className="text-lg font-black tracking-wide">How to Make Your CV</h3>
-              <p className="text-xs text-blue-100">Super easy guide - even a 5th grader can do it!</p>
+              <h3 className="text-base sm:text-lg font-black tracking-wide">How to Make Your CV</h3>
+              <p className="text-[11px] sm:text-xs text-blue-100">Super easy guide - even a 5th grader can do it!</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition"
+            className="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Steps */}
-        <div className="p-6 space-y-4">
+        {/* Modal Steps (Scrollable on small mobile heights) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4">
           {/* Step 1 */}
-          <div className="flex items-start gap-3.5 p-3 rounded-xl bg-blue-50/60 border border-blue-100">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-black text-sm flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-50/60 border border-blue-100">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-black text-xs sm:text-sm flex items-center justify-center shrink-0">
               1
             </div>
             <div>
@@ -40,8 +40,8 @@ export default function Class5GuideModal({ isOpen, onClose }) {
           </div>
 
           {/* Step 2 */}
-          <div className="flex items-start gap-3.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
-            <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-black text-sm flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-600 text-white font-black text-xs sm:text-sm flex items-center justify-center shrink-0">
               2
             </div>
             <div>
@@ -53,8 +53,8 @@ export default function Class5GuideModal({ isOpen, onClose }) {
           </div>
 
           {/* Step 3 */}
-          <div className="flex items-start gap-3.5 p-3 rounded-xl bg-purple-50/60 border border-purple-100">
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-black text-sm flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-purple-50/60 border border-purple-100">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-600 text-white font-black text-xs sm:text-sm flex items-center justify-center shrink-0">
               3
             </div>
             <div>
@@ -66,8 +66,8 @@ export default function Class5GuideModal({ isOpen, onClose }) {
           </div>
 
           {/* Step 4 */}
-          <div className="flex items-start gap-3.5 p-3 rounded-xl bg-amber-50/60 border border-amber-100">
-            <div className="w-8 h-8 rounded-full bg-amber-600 text-white font-black text-sm flex items-center justify-center shrink-0">
+          <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-50/60 border border-amber-100">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-600 text-white font-black text-xs sm:text-sm flex items-center justify-center shrink-0">
               4
             </div>
             <div>
@@ -80,14 +80,14 @@ export default function Class5GuideModal({ isOpen, onClose }) {
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Try clicking &quot;Load BD Demo&quot; to see how it works!</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span className="text-[11px] sm:text-xs">Switch between Edit and Preview anytime!</span>
           </div>
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition cursor-pointer text-center shadow-xs"
           >
             Got it, Let&apos;s Start! 🚀
           </button>

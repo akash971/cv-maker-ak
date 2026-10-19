@@ -59,3 +59,79 @@ Refactored the full-stack CV/Resume builder to eliminate all local server file-s
 - **Frontend Build (`vite build`)**: Passed with 0 errors (`dist/` generated cleanly).
 - **Linter (`oxlint`)**: Passed with 0 errors across all 26 client files.
 - **Server Verification**: Verified `/api/health`, `/api/templates`, in-memory saving, and CORS origin matching with `CLIENT_URL=https://my-cv-app.vercel.app`.
+
+---
+
+# 📱 Commit Summary: Mobile Responsiveness Overhaul (iPhone 7 Plus to 2026 Smartphones)
+
+**Date:** October 19, 2026  
+**Type:** Feature / Mobile UX (`feat`)
+
+## 🎯 Objectives Achieved
+Engineered a comprehensive mobile responsive design ensuring complete, seamless usability on viewports ranging from classic devices like iPhone 7 Plus (414px width) up to modern 2026 smartphones (360px–430px+, Dynamic Island/notches, foldables).
+
+---
+
+## 🛠️ Summary of Changes
+
+### 1. Mobile Bottom Navigation Bar (`MobileBottomNav.jsx`)
+- Built a thumb-friendly bottom navigation bar mounted on screens `< 1024px` (`lg:hidden`).
+- Features 5 primary action tabs with active state indicators:
+  - **Edit Form**: Opens candidate information & sections editor.
+  - **Preview**: Switches directly to the live A4 paper preview.
+  - **Style**: Opens typography, theme colors, and layout customizer.
+  - **Saved**: Opens saved CV versions & JSON import/export modal.
+  - **PDF**: Triggers direct instant vector print generation.
+- Added iOS home indicator safe area inset handling (`pb-safe`) to prevent overlap on modern iPhones.
+
+### 2. Responsive A4 Paper Scaling Engine (`PreviewPanel.jsx`)
+- Re-architected the A4 preview (base 794px × 1123px) to dynamically scale using `ResizeObserver`.
+- On narrow viewports (e.g. 414px iPhone 7 Plus), the preview automatically scales to ~48%–50% to fit edge-to-edge with zero horizontal scrolling or clipping.
+- Added negative vertical margin compensation (`marginBottom: -1123 * (1 - scale)px`) eliminating dead blank whitespace beneath the scaled canvas.
+- Added a floating touch toolbar with **Fit**, **100% Reading View**, **Zoom In (+)**, and **Zoom Out (-)** controls.
+
+### 3. Compact Header & Overflow Menu (`Navbar.jsx`)
+- Restructured navigation bar into a non-wrapping single row on mobile.
+- Features quick-toggle for **BD / Intl** template switch and high-visibility **PDF** button.
+- Added a compact **`•••`** dropdown menu for secondary actions:
+  - Class 5 BD Guide
+  - Saved CVs Library
+  - Import JSON File
+  - Export Current CV (JSON)
+  - Undo Last Action
+
+### 4. Form Editors & Dialogs Touch Optimization
+- **`PersonalInfoEditor.jsx`**: Responsive `grid-cols-1 sm:grid-cols-2` for photo shape, alignment, and position controls.
+- **`ReferenceBoxesEditor.jsx`**: Referee card inputs refactored to single-column on mobile and two-column on tablet/desktop.
+- **`StyleCustomizer.jsx`**: Text sizing and page margin dropdowns converted to responsive grids.
+- **`TableSectionEditor.jsx`**: Wrapped table editor in horizontal scroll container with minimum cell widths (`85px`) to prevent input distortion on small screens.
+- **`SectionsManager.jsx`**: Touch-friendly button padding (`p-1.5 rounded-lg active:scale-95`), `stopPropagation` on actions, and delete confirmation prompt.
+- **`AddSectionModal.jsx` & `Class5GuideModal.jsx` & `SavedCvsModal.jsx`**: Modals updated with `max-h-[88dvh]`, smooth touch scrolling, and responsive stacked buttons.
+
+### 5. Viewport & Dynamic Height Architecture (`index.html`, `index.css`)
+- Added `viewport-fit=cover`, `maximum-scale=5.0`, and dark slate `<meta name="theme-color">` for notch/island support.
+- Switched full-height containers to `100dvh` (Dynamic Viewport Height) to eliminate UI jumping when mobile Safari / Chrome show or hide the address bar.
+- Added `touch-action: manipulation` and tap-highlight prevention utilities.
+
+---
+
+## 📁 Modified Files
+
+| File | Change Description |
+|---|---|
+| `client/index.html` | Added `viewport-fit=cover` and mobile meta tags |
+| `client/src/index.css` | Added `100dvh`, iOS safe area utilities, and tap touch rules |
+| `client/src/App.jsx` | Integrated `MobileBottomNav`, `100dvh` viewport, and bottom navigation padding |
+| `client/src/components/MobileBottomNav.jsx` | Dedicated thumb-friendly mobile bottom navigation component |
+| `client/src/components/Navbar.jsx` | Compact mobile header with quick BD/Intl switch and `•••` overflow menu |
+| `client/src/components/Preview/PreviewPanel.jsx` | Responsive A4 scaling engine with touch zoom controls |
+| `client/src/components/Editor/EditorPanel.jsx` | Mobile-friendly short tabs and responsive sub-bar |
+| `client/src/components/Editor/PersonalInfoEditor.jsx` | Responsive grid layouts for photo controls |
+| `client/src/components/Editor/ReferenceBoxesEditor.jsx` | Responsive inputs for referee details |
+| `client/src/components/Editor/SectionsManager.jsx` | Touch targets, delete confirmation, and touch event isolation |
+| `client/src/components/Editor/StyleCustomizer.jsx` | Responsive dropdown grids |
+| `client/src/components/Editor/TableSectionEditor.jsx` | Scrollable table editor container with min cell widths |
+| `client/src/components/Editor/AddSectionModal.jsx` | Mobile dvh modal sizing |
+| `client/src/components/Class5GuideModal.jsx` | Mobile dvh dialog with responsive action buttons |
+| `client/src/components/SavedCvsModal.jsx` | Mobile dvh dialog with full-width action controls |
+

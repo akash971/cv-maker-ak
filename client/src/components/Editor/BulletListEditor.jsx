@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 export default function BulletListEditor({ section, onUpdate }) {
   const items = section.items || [];

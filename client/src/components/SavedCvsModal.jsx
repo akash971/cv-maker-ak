@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, FolderOpen, Trash2, Clock, Check, AlertCircle, Download, Upload, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { X, Save, FolderOpen, Trash2, Check, AlertCircle, Download, Upload, FileText } from 'lucide-react';
 
 const STORAGE_KEY = 'cv_saved_versions_library';
 
@@ -10,22 +10,16 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
   const [statusMsg, setStatusMsg] = useState(null);
   const importInputRef = useRef(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      setSaveTitle(cvData?.title || `${cvData?.personal?.fullName || 'My'}_CV`);
-      loadSavedVersions();
-    }
-  }, [isOpen]);
-
   // Read saved versions directly from browser localStorage
-  const loadSavedVersions = () => {
-    setLoading(true);
+  const loadSavedVersions = useCallback(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       let list = raw ? JSON.parse(raw) : [];
 
       // Check legacy single-cv entries in localStorage and migrate them if any
-      const legacyKeys = Object.keys(localStorage).filter(k => k.startsWith('cv_') && k !== 'cv_user_personal_profile' && k !== 'cv_backup_history' && k !== STORAGE_KEY);
+      const legacyKeys = Object.keys(localStorage).filter(
+        k => k.startsWith('cv_') && k !== 'cv_user_personal_profile' && k !== 'cv_backup_history' && k !== STORAGE_KEY
+      );
       if (legacyKeys.length > 0) {
         let migratedAny = false;
         legacyKeys.forEach(k => {
@@ -42,20 +36,33 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
               });
               migratedAny = true;
             }
-          } catch (e) {}
+          } catch {
+            // Ignore malformed legacy item
+          }
         });
         if (migratedAny) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
         }
       }
 
-      setSavedList(list);
+      return list;
     } catch (err) {
       console.warn('Error reading localStorage saved CVs', err);
-    } finally {
-      setLoading(false);
+      return [];
     }
-  };
+  }, []);
+
+  const defaultTitle = cvData?.title || `${cvData?.personal?.fullName || 'My'}_CV`;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const list = loadSavedVersions();
+    const timer = setTimeout(() => {
+      setSaveTitle(defaultTitle);
+      setSavedList(list);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [isOpen, defaultTitle, loadSavedVersions]);
 
   // Save current CV version to browser localStorage (and optionally sync in-memory server)
   const handleSaveVersion = async () => {
@@ -134,7 +141,7 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
 
       // Best effort delete on backend in-memory cache
       fetch(`/api/cv/${id}`, { method: 'DELETE' }).catch(() => {});
-    } catch (err) {
+    } catch {
       alert('Could not delete version');
     }
   };
@@ -150,7 +157,7 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-    } catch (err) {
+    } catch {
       alert('Failed to export JSON file.');
     }
   };
@@ -182,7 +189,7 @@ export default function SavedCvsModal({ isOpen, onClose, cvData, onSelectCv }) {
         } else {
           alert('Invalid CV file structure.');
         }
-      } catch (err) {
+      } catch {
         alert('Failed to parse JSON file.');
       }
     };

@@ -1,10 +1,7 @@
 import React from 'react';
 import { X, FileText, ListOrdered, GraduationCap, Briefcase, UserCheck, Table, Users, Award, PenTool } from 'lucide-react';
 
-export default function AddSectionModal({ isOpen, onClose, onAddSection }) {
-  if (!isOpen) return null;
-
-  const sectionTemplates = [
+const sectionTemplates = [
     {
       type: 'text',
       title: 'SUMMARY OR OBJECTIVE',
@@ -37,7 +34,7 @@ export default function AddSectionModal({ isOpen, onClose, onAddSection }) {
       defaultData: {
         items: [
           {
-            id: `edu_${Date.now()}`,
+            id: 'edu_default_1',
             examName: 'Secondary School Certificate (SSC)',
             department: 'Science',
             session: '2016-2017',
@@ -59,7 +56,7 @@ export default function AddSectionModal({ isOpen, onClose, onAddSection }) {
       defaultData: {
         items: [
           {
-            id: `exp_${Date.now()}`,
+            id: 'exp_default_1',
             role: 'Job Role / Title',
             company: 'Company Name',
             location: 'Dhaka, Bangladesh',
@@ -150,13 +147,23 @@ export default function AddSectionModal({ isOpen, onClose, onAddSection }) {
     }
   ];
 
+export default function AddSectionModal({ isOpen, onClose, onAddSection }) {
+  if (!isOpen) return null;
+
   const handlePick = (tmpl) => {
+    const uid = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : String(tmpl.type);
+    const defaultDataCopy = JSON.parse(JSON.stringify(tmpl.defaultData));
+    if (Array.isArray(defaultDataCopy.items)) {
+      defaultDataCopy.items = defaultDataCopy.items.map((item, idx) =>
+        item.id ? { ...item, id: `${tmpl.type}_${uid}_${idx}` } : item
+      );
+    }
     const newSection = {
-      id: `sec_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      id: `sec_${uid}`,
       type: tmpl.type,
       title: tmpl.title,
       enabled: true,
-      ...tmpl.defaultData
+      ...defaultDataCopy
     };
     onAddSection(newSection);
     onClose();

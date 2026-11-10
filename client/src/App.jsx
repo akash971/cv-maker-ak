@@ -38,7 +38,14 @@ export default function App() {
   const [activeSectionId, setActiveSectionId] = useState(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
-  const [hasBackup, setHasBackup] = useState(false);
+  const [hasBackup, setHasBackup] = useState(() => {
+    try {
+      const history = JSON.parse(localStorage.getItem('cv_backup_history') || '[]');
+      return history.length > 0;
+    } catch {
+      return false;
+    }
+  });
 
   const handleTriggerPrint = () => {
     const originalTitle = document.title;
@@ -52,16 +59,6 @@ export default function App() {
       document.title = originalTitle;
     }, 1500);
   };
-
-  // Check if backup history exists
-  useEffect(() => {
-    try {
-      const history = JSON.parse(localStorage.getItem('cv_backup_history') || '[]');
-      setHasBackup(history.length > 0);
-    } catch (e) {
-      setHasBackup(false);
-    }
-  }, [cvData]);
 
   // Auto-save draft to local storage on change
   useEffect(() => {
@@ -160,7 +157,9 @@ export default function App() {
     let customProfile = null;
     try {
       customProfile = JSON.parse(localStorage.getItem('cv_user_personal_profile') || 'null');
-    } catch (e) {}
+    } catch {
+      // Ignore parse error
+    }
 
     setCvData(prev => ({
       ...prev,

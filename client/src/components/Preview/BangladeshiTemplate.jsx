@@ -9,7 +9,7 @@ import {
   isLongOrAddressField 
 } from '../../utils/cvPreProcessor';
 
-export default function BangladeshiTemplate({ cvData, onSectionClick, activeSectionId }) {
+export default function BangladeshiTemplate({ cvData, activeSectionId }) {
   const { design = {}, personal = {}, sections = [] } = cvData || {};
   const activeSections = (sections || []).filter(s => s.enabled !== false);
 
@@ -88,10 +88,21 @@ export default function BangladeshiTemplate({ cvData, onSectionClick, activeSect
     }
   };
 
+  const getSpacingClass = () => {
+    switch (design.lineSpacing) {
+      case 'compact': return 'p-6 sm:p-8';
+      case 'relaxed': return 'p-10 sm:p-13';
+      case 'normal':
+      default:
+        return 'p-8 sm:p-11';
+    }
+  };
+
   const headerAlignment = design.headerAlignment || 'center';
   const showHeaderTitle = design.showHeaderTitle !== false && !!design.headerTitle?.trim();
   const showHeaderSubtitle = design.showHeaderSubtitle !== false && !!design.headerSubtitle?.trim();
-  const contactStyle = design.contactStyle || (design.showContactIcons !== false ? 'icons-inline' : 'classic-labels');
+  const showIcons = design.showContactIcons !== false && design.contactStyle !== 'classic-labels';
+  const contactStyle = design.contactStyle || (showIcons ? 'icons-inline' : 'classic-labels');
 
   const alignClass = 
     headerAlignment === 'left' ? 'text-left items-start' :
@@ -103,29 +114,45 @@ export default function BangladeshiTemplate({ cvData, onSectionClick, activeSect
 
   const hasPhoto = !!(design.photo?.show && design.photo?.url);
   const photoPosition = design.photo?.position || 'top-right';
-  const headerPaddingClass = 
-    hasPhoto && photoPosition === 'top-right' && headerAlignment !== 'right' ? 'pr-28' :
-    hasPhoto && photoPosition === 'top-left' && headerAlignment !== 'left' ? 'pl-28' : '';
+
+  const headerLayoutClass = !hasPhoto
+    ? 'flex-col'
+    : photoPosition === 'center'
+    ? 'flex-col items-center gap-3'
+    : photoPosition === 'top-left'
+    ? 'flex-row-reverse justify-between items-center gap-4'
+    : 'flex-row justify-between items-center gap-4';
 
   return (
-    <div className={`w-full bg-white text-black p-8 sm:p-11 print:p-0 ${getFontClass()} ${getFontSizeClass()} select-text`}>
+    <div className={`w-full bg-white text-black ${getSpacingClass()} print:p-0 ${getFontClass()} ${getFontSizeClass()} select-text`}>
       {/* Main CV Header Container */}
       <header 
         data-section-id="personal"
-        className={`main-cv-header mb-6 pb-2 interactive-preview-section ${
+        className={`main-cv-header flex ${headerLayoutClass} mb-6 pb-2 pt-3 interactive-preview-section ${
           activeSectionId === 'personal' ? 'active-focused-section' : ''
         }`}
         title="Click to edit Personal Info & Contacts"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingTop: '24px',
-          marginTop: '20px'
-        }}
       >
-        {/* Left Column: Candidate Name (<h1>) & Contact Details */}
-        <div className="flex flex-col items-start text-left flex-1 min-w-0 pr-4">
+        {/* If photo position is center, render photo on top */}
+        {hasPhoto && photoPosition === 'center' && (
+          <div data-field-key="photo" className="shrink-0 cursor-pointer" title="Click to edit Photo">
+            <div 
+              className={`overflow-hidden border border-black bg-gray-50 shadow-xs ${
+                design.photo.shape === 'circle' ? 'rounded-full w-24 h-24' :
+                design.photo.shape === 'square' ? 'w-24 h-24' : 'w-24 h-28'
+              }`}
+            >
+              <img 
+                src={design.photo.url} 
+                alt={cleanTextArtifacts(personal.fullName || 'Passport Photo')} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Candidate Name (<h1>) & Contact Details Column */}
+        <div className={`flex flex-col ${alignClass} flex-1 min-w-0 w-full`}>
           {/* Optional Main Title (CURRICULUM VITAE) */}
           {showHeaderTitle && (
             <div className="text-[12pt] sm:text-[13pt] font-bold tracking-widest uppercase mb-0.5 leading-tight text-black">
@@ -159,11 +186,59 @@ export default function BangladeshiTemplate({ cvData, onSectionClick, activeSect
             </div>
           )}
 
-          {/* Compact Contact Details (Phone, Email, etc. packed with gap: 4px / margin: 2px 0) */}
-          {contactStyle === 'icons-inline' ? (
+          {/* Contact Details: Supports Icons Inline, Icons Stacked, and Classic Text Labels */}
+          {contactStyle === 'classic-labels' || !showIcons ? (
             <div 
-              className="flex flex-wrap items-center gap-x-4 text-[9.5pt] text-black"
-              style={{ gap: '4px' }}
+              className={`flex flex-col ${alignClass} text-[9.5pt] leading-snug text-black`}
+              style={{ gap: '2px' }}
+            >
+              {personal.mobile && (
+                <div data-field-key="mobile" className="cursor-pointer">
+                  <span className="font-semibold">Mobile No: </span>
+                  <span>{cleanTextArtifacts(personal.mobile)}</span>
+                </div>
+              )}
+              {personal.whatsapp && (
+                <div data-field-key="whatsapp" className="cursor-pointer">
+                  <span className="font-semibold">WhatsApp: </span>
+                  <span>{cleanTextArtifacts(personal.whatsapp)}</span>
+                </div>
+              )}
+              {personal.email && (
+                <div data-field-key="email" className="cursor-pointer">
+                  <span className="font-semibold">E-mail: </span>
+                  <span>{cleanTextArtifacts(personal.email)}</span>
+                </div>
+              )}
+              {personal.address && (
+                <div data-field-key="address" className="cursor-pointer">
+                  <span className="font-semibold">Address: </span>
+                  <span>{cleanTextArtifacts(personal.address)}</span>
+                </div>
+              )}
+              {personal.linkedin && (
+                <div data-field-key="linkedin" className="cursor-pointer">
+                  <span className="font-semibold">LinkedIn: </span>
+                  <span>{cleanTextArtifacts(personal.linkedin)}</span>
+                </div>
+              )}
+              {personal.github && (
+                <div data-field-key="github" className="cursor-pointer">
+                  <span className="font-semibold">GitHub: </span>
+                  <span>{cleanTextArtifacts(personal.github)}</span>
+                </div>
+              )}
+              {personal.website && (
+                <div data-field-key="website" className="cursor-pointer">
+                  <span className="font-semibold">Website: </span>
+                  <span>{cleanTextArtifacts(personal.website)}</span>
+                </div>
+              )}
+            </div>
+          ) : contactStyle === 'icons-inline' ? (
+            <div 
+              className={`flex flex-wrap items-center ${flexJustifyClass} text-[9.5pt] text-black`}
+              style={{ gap: '6px 14px' }}
             >
               {personal.mobile && (
                 <div data-field-key="mobile" className="inline-flex items-center gap-1.5 cursor-pointer" style={{ margin: '2px 0' }}>
@@ -210,7 +285,7 @@ export default function BangladeshiTemplate({ cvData, onSectionClick, activeSect
             </div>
           ) : (
             <div 
-              className="flex flex-col items-start text-[9.5pt] leading-tight text-black"
+              className={`flex flex-col ${alignClass} text-[9.5pt] leading-tight text-black`}
               style={{ gap: '4px' }}
             >
               {personal.mobile && (
@@ -259,9 +334,9 @@ export default function BangladeshiTemplate({ cvData, onSectionClick, activeSect
           )}
         </div>
 
-        {/* Right Column: Properly Sized & Right-Aligned Profile Image Container */}
-        {hasPhoto && (
-          <div data-field-key="photo" className="shrink-0 ml-4 self-center cursor-pointer" title="Click to edit Photo">
+        {/* Left or Right Aligned Profile Image Container */}
+        {hasPhoto && photoPosition !== 'center' && (
+          <div data-field-key="photo" className="shrink-0 self-center cursor-pointer" title="Click to edit Photo">
             <div 
               className={`overflow-hidden border border-black bg-gray-50 shadow-xs ${
                 design.photo.shape === 'circle' ? 'rounded-full w-24 h-24' :
@@ -577,6 +652,13 @@ export default function BangladeshiTemplate({ cvData, onSectionClick, activeSect
                     </div>
                   </div>
                   <div className="text-center min-w-[170px]">
+                    {sec.signatureImage && (
+                      <img 
+                        src={sec.signatureImage} 
+                        alt="Candidate Signature" 
+                        className="h-10 max-w-[150px] object-contain mx-auto mb-1"
+                      />
+                    )}
                     {design.showSignatureLine !== false && (
                       <div className="border-t border-black w-36 mx-auto mb-1" />
                     )}

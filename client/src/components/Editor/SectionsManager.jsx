@@ -6,9 +6,7 @@ import {
   EyeOff, 
   Trash2, 
   Plus, 
-  ChevronRight,
-  GripVertical,
-  Edit3
+  ChevronRight
 } from 'lucide-react';
 import TextSectionEditor from './TextSectionEditor';
 import BulletListEditor from './BulletListEditor';

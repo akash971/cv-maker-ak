@@ -2,7 +2,7 @@ import React from 'react';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 import { LinkedinIcon, GithubIcon, WhatsAppIcon } from '../Common/Icons';
 
-export default function InternationalTemplate({ cvData, onSectionClick, activeSectionId }) {
+export default function InternationalTemplate({ cvData, activeSectionId }) {
   const { design = {}, personal = {}, sections = [] } = cvData || {};
   const activeSections = sections.filter(s => s.enabled !== false);
   const accentColor = design.accentColor || '#2563eb';
@@ -32,26 +32,65 @@ export default function InternationalTemplate({ cvData, onSectionClick, activeSe
     }
   };
 
+  const getSpacingClass = () => {
+    switch (design.lineSpacing) {
+      case 'compact': return 'p-6 sm:p-8';
+      case 'relaxed': return 'p-10 sm:p-14';
+      case 'normal':
+      default:
+        return 'p-8 sm:p-12';
+    }
+  };
+
+  const headerAlignment = design.headerAlignment || 'left';
+  const alignClass = 
+    headerAlignment === 'center' ? 'text-center items-center' :
+    headerAlignment === 'right' ? 'text-right items-end' : 'text-left items-start';
+
+  const flexJustifyClass = 
+    headerAlignment === 'center' ? 'justify-center' :
+    headerAlignment === 'right' ? 'justify-end' : 'justify-start';
+
+  const hasPhoto = !!(design.photo?.show && design.photo?.url);
+  const photoPosition = design.photo?.position || 'top-right';
+
+  const headerLayoutClass = !hasPhoto
+    ? 'flex-col'
+    : photoPosition === 'center'
+    ? 'flex-col items-center gap-3'
+    : photoPosition === 'top-left'
+    ? 'flex-row-reverse justify-between items-center gap-4'
+    : 'flex-row justify-between items-center gap-4';
+
   return (
-    <div className={`w-full bg-white text-slate-800 p-8 sm:p-12 print:p-0 ${getFontClass()} ${getFontSizeClass()} select-text`}>
+    <div className={`w-full bg-white text-slate-800 ${getSpacingClass()} print:p-0 ${getFontClass()} ${getFontSizeClass()} select-text`}>
       {/* Main CV Header Container */}
       <header 
         data-section-id="personal"
-        className={`main-cv-header border-b pb-6 mb-6 interactive-preview-section ${
+        className={`main-cv-header flex ${headerLayoutClass} border-b pb-6 mb-6 pt-3 interactive-preview-section ${
           activeSectionId === 'personal' ? 'active-focused-section' : ''
         }`}
         title="Click to edit Personal Info & Contacts"
-        style={{ 
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingTop: '24px',
-          marginTop: '20px',
-          borderColor: `${accentColor}33` 
-        }}
+        style={{ borderColor: `${accentColor}33` }}
       >
-        {/* Left Column: Candidate Name (<h1>) & Contact Details */}
-        <div className="flex flex-col items-start text-left flex-1 min-w-0 pr-4">
+        {/* Top Centered Photo (if photoPosition === 'center') */}
+        {hasPhoto && photoPosition === 'center' && (
+          <div data-field-key="photo" className="shrink-0 cursor-pointer" title="Click to edit Photo">
+            <div className={`overflow-hidden border-2 shadow-sm ${
+              design.photo.shape === 'circle' ? 'rounded-full w-24 h-24' :
+              design.photo.shape === 'square' ? 'rounded-xl w-24 h-24' : 'rounded-lg w-20 h-24'
+            }`} style={{ borderColor: accentColor }}>
+              <img 
+                src={design.photo.url} 
+                alt={personal.fullName || 'Profile'} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Candidate Name (<h1>) & Contact Details */}
+        <div className={`flex flex-col ${alignClass} flex-1 min-w-0 w-full`}>
           <h1 
             data-field-key="fullName"
             className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight" 
@@ -70,7 +109,7 @@ export default function InternationalTemplate({ cvData, onSectionClick, activeSe
           )}
 
           {/* Contact Bar with compact spacing */}
-          <div className="flex flex-wrap items-center gap-x-4 text-xs text-slate-600" style={{ gap: '4px' }}>
+          <div className={`flex flex-wrap items-center ${flexJustifyClass} text-xs text-slate-600`} style={{ gap: '6px 14px' }}>
             {personal.email && (
               <a data-field-key="email" href={`mailto:${personal.email}`} className="flex items-center gap-1.5 hover:text-blue-600 transition" style={{ margin: '2px 0' }}>
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -116,9 +155,9 @@ export default function InternationalTemplate({ cvData, onSectionClick, activeSe
           </div>
         </div>
 
-        {/* Profile Photo Container (Right-aligned) */}
-        {design.photo?.show && design.photo?.url && (
-          <div data-field-key="photo" className="shrink-0 ml-4 self-center cursor-pointer" title="Click to edit Photo">
+        {/* Profile Photo Container (Left or Right aligned) */}
+        {hasPhoto && photoPosition !== 'center' && (
+          <div data-field-key="photo" className="shrink-0 self-center cursor-pointer" title="Click to edit Photo">
             <div className={`overflow-hidden border-2 shadow-sm ${
               design.photo.shape === 'circle' ? 'rounded-full w-24 h-24' :
               design.photo.shape === 'square' ? 'rounded-xl w-24 h-24' : 'rounded-lg w-20 h-24'
@@ -319,11 +358,20 @@ export default function InternationalTemplate({ cvData, onSectionClick, activeSe
             {sec.type === 'declaration' && (
               <div className="pt-2 text-xs text-slate-600">
                 <p className="italic leading-relaxed">{sec.text || design.declarationText}</p>
-                {sec.signName && (
-                  <div className="mt-4 font-bold text-slate-900">
-                    {sec.signName}
-                  </div>
-                )}
+                <div className="mt-4">
+                  {sec.signatureImage && (
+                    <img 
+                      src={sec.signatureImage} 
+                      alt="Signature" 
+                      className="h-10 max-w-[150px] object-contain mb-1"
+                    />
+                  )}
+                  {sec.signName && (
+                    <div className="font-bold text-slate-900">
+                      {sec.signName}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </section>

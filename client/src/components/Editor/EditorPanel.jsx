@@ -50,17 +50,22 @@ export default function EditorPanel({
         console.warn('Backup error', e);
       }
 
-      // 2. Load sample but PRESERVE user personal contact details if they've entered custom ones!
+      // 2. Load sample but PRESERVE user personal contact details & uploaded photo if they've entered custom ones!
       const userHasCustomName = cvData.personal?.fullName &&
         cvData.personal.fullName !== 'MD. EMRAN HOSSEN BIPLOB' &&
         cvData.personal.fullName !== 'Alex Morgan';
 
       const preservedPersonal = userHasCustomName ? { ...cvData.personal } : { ...sample.personal };
+      const hasUploadedPhoto = typeof cvData.design?.photo?.url === 'string' && cvData.design.photo.url.startsWith('data:image/');
 
       setCvData({
         ...sample,
         styleMode: cvData.styleMode || sample.styleMode,
-        personal: preservedPersonal
+        personal: preservedPersonal,
+        design: {
+          ...sample.design,
+          photo: hasUploadedPhoto ? { ...cvData.design.photo } : { ...sample.design.photo }
+        }
       });
     }
   };

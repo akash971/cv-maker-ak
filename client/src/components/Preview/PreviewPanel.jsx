@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw, Printer, Download, Maximize2, FileText } from 'lucide-react';
+import { ZoomIn, ZoomOut, Printer, Download } from 'lucide-react';
 import BangladeshiTemplate from './BangladeshiTemplate';
 import InternationalTemplate from './InternationalTemplate';
 import { preProcessCvData } from '../../utils/cvPreProcessor';
@@ -223,13 +223,11 @@ export default function PreviewPanel({
             {isBangladeshi ? (
               <BangladeshiTemplate 
                 cvData={sanitizedCvData} 
-                onSectionClick={onSectionClick}
                 activeSectionId={activeSectionId}
               />
             ) : (
               <InternationalTemplate 
                 cvData={sanitizedCvData} 
-                onSectionClick={onSectionClick}
                 activeSectionId={activeSectionId}
               />
             )}

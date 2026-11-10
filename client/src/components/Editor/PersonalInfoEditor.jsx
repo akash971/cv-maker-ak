@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   User, 
   Phone, 
@@ -19,9 +19,12 @@ import { LinkedinIcon, GithubIcon, WhatsAppIcon } from '../Common/Icons';
 
 export default function PersonalInfoEditor({ cvData, setCvData }) {
   const fileInputRef = useRef(null);
+  const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState('');
   const personal = cvData.personal || {};
   const design = cvData.design || {};
   const photo = design.photo || {};
+  const isBase64Photo = typeof photo.url === 'string' && photo.url.startsWith('data:image/');
 
   const updatePersonal = (field, value) => {
     setCvData(prev => ({
@@ -56,12 +59,17 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
     }));
   };
 
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
+  const processImageFile = (file) => {
     if (!file) return;
+    setPhotoError('');
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file (JPG, PNG, WebP).');
+      setPhotoError('Please select a valid image file (JPG, PNG, WebP).');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      setPhotoError('Image file is too large (max 15MB). Please choose a smaller photo.');
       return;
     }
 
@@ -71,10 +79,10 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
       if (!dataUrl) return;
 
       // Optimize image resolution for passport photo usage to protect localStorage quota
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         try {
-          const maxDim = 800; // Optimal for sharp 300DPI passport printing
+          const maxDim = 500; // Sharp 300+ DPI for 35x45mm passport photo while keeping Base64 compact
           let width = img.width;
           let height = img.height;
 
@@ -92,10 +100,12 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          // Fill white background so transparent PNGs never turn black in JPEG
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
 
-          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-          const optimizedBase64 = canvas.toDataURL(mimeType, 0.9);
+          const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.88);
 
           setCvData(prev => ({
             ...prev,
@@ -108,7 +118,7 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
               }
             }
           }));
-        } catch (err) {
+        } catch {
           // Direct fallback to raw Base64 data URL
           setCvData(prev => ({
             ...prev,
@@ -125,28 +135,34 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
       };
 
       img.onerror = () => {
-        setCvData(prev => ({
-          ...prev,
-          design: {
-            ...prev.design,
-            photo: {
-              ...prev.design?.photo,
-              url: dataUrl,
-              show: true
-            }
-          }
-        }));
+        setPhotoError('Could not load the selected image file.');
       };
 
       img.src = dataUrl;
     };
 
     reader.onerror = () => {
-      alert('Failed to read image file.');
+      setPhotoError('Failed to read image file.');
     };
 
     reader.readAsDataURL(file);
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
     e.target.value = '';
+  };
+
+  const handlePhotoDrop = (e) => {
+    e.preventDefault();
+    setIsDraggingPhoto(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
   };
 
   const headerAlignment = design.headerAlignment || 'center';
@@ -573,7 +589,16 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
       </div>
 
       {/* 5. Photo Settings Box */}
-      <div id="field-photo" data-field-key="photo" className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+      <div 
+        id="field-photo" 
+        data-field-key="photo" 
+        onDragOver={(e) => { e.preventDefault(); setIsDraggingPhoto(true); }}
+        onDragLeave={() => setIsDraggingPhoto(false)}
+        onDrop={handlePhotoDrop}
+        className={`bg-slate-50 p-3.5 rounded-xl border transition-all space-y-3 ${
+          isDraggingPhoto ? 'border-purple-500 bg-purple-50/50 ring-2 ring-purple-200' : 'border-slate-200'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <Image className="w-4 h-4 text-purple-600" />
@@ -588,94 +613,150 @@ export default function PersonalInfoEditor({ cvData, setCvData }) {
             />
             <div className="w-9 h-5 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
             <span className="ml-2 text-xs font-medium text-slate-600">
-              {photo.show ? 'Shown' : 'Hidden'}
+              {photo.show ? 'Shown on CV' : 'Hidden'}
             </span>
           </label>
         </div>
 
-        {photo.show && (
-          <div className="space-y-3 pt-1 border-t border-slate-200">
-            <div className="flex items-center gap-3">
-              {/* Photo preview thumbnail */}
-              <div className="w-16 h-20 rounded border border-slate-300 overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center">
-                {photo.url ? (
-                  <img src={photo.url} alt="Photo Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-[10px] text-slate-400 text-center px-1">No Image</span>
+        <div className="space-y-3 pt-1 border-t border-slate-200">
+          <div className="flex items-center gap-3">
+            {/* Photo preview thumbnail (clickable to upload) */}
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              title="Click to upload photo"
+              className="w-16 h-20 rounded-lg border border-slate-300 hover:border-purple-400 overflow-hidden bg-slate-200 shrink-0 flex items-center justify-center cursor-pointer relative group transition"
+            >
+              {photo.url ? (
+                <img 
+                  src={photo.url} 
+                  alt="Photo Preview" 
+                  className={`w-full h-full object-cover ${!photo.show ? 'opacity-50 grayscale' : ''}`}
+                  onError={() => setPhotoError('Could not load image from URL. Please check the link or upload from device.')}
+                />
+              ) : (
+                <span className="text-[10px] text-slate-500 text-center px-1 font-medium group-hover:text-purple-600">
+                  Click or Drop Photo
+                </span>
+              )}
+            </div>
+
+            <div className="flex-1 space-y-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                accept="image/jpeg,image/png,image/webp,image/*"
+                className="hidden"
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg font-semibold cursor-pointer transition shadow-2xs"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>{photo.url ? 'Change Photo' : 'Upload From Device'}</span>
+                </button>
+                {photo.url && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhotoError('');
+                      setCvData(prev => ({
+                        ...prev,
+                        design: {
+                          ...prev.design,
+                          photo: {
+                            ...prev.design?.photo,
+                            url: '',
+                            show: false
+                          }
+                        }
+                      }));
+                    }}
+                    className="flex items-center gap-1 text-xs text-rose-600 hover:bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition cursor-pointer"
+                    title="Remove Photo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
                 )}
               </div>
 
-              <div className="flex-1 space-y-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handlePhotoUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1 text-xs bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg font-semibold cursor-pointer transition shadow-2xs"
-                  >
-                    <Upload className="w-3 h-3 text-purple-600" />
-                    <span>Upload From Device</span>
-                  </button>
-                  {photo.url && (
+              {isBase64Photo ? (
+                <div className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md flex items-center justify-between">
+                  <span>✅ Device photo uploaded & optimized</span>
+                  {!photo.show && (
                     <button
                       type="button"
-                      onClick={() => updatePhoto('url', '')}
-                      className="text-xs text-rose-600 hover:bg-rose-50 p-1.5 rounded-lg transition"
-                      title="Remove Photo"
+                      onClick={() => updatePhoto('show', true)}
+                      className="text-purple-700 font-bold underline ml-2 cursor-pointer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      Show on CV
                     </button>
                   )}
                 </div>
-
+              ) : (
                 <div>
                   <input
-                    type="text"
+                    type="url"
                     value={photo.url || ''}
-                    onChange={(e) => updatePhoto('url', e.target.value)}
-                    placeholder="Or paste an image web link here..."
-                    className="w-full text-[11px] px-2.5 py-1 rounded-md border border-slate-300 bg-white"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPhotoError('');
+                      setCvData(prev => ({
+                        ...prev,
+                        design: {
+                          ...prev.design,
+                          photo: {
+                            ...prev.design?.photo,
+                            url: val,
+                            show: val.trim() ? true : prev.design?.photo?.show
+                          }
+                        }
+                      }));
+                    }}
+                    placeholder="Or paste a direct image URL (https://...)"
+                    className="w-full text-[11px] px-2.5 py-1.5 rounded-md border border-slate-300 bg-white focus:outline-purple-500"
                   />
                 </div>
-              </div>
-            </div>
+              )}
 
-            {/* Shape and position controls */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Photo Shape</label>
-                <select
-                  value={photo.shape || 'passport'}
-                  onChange={(e) => updatePhoto('shape', e.target.value)}
-                  className="w-full px-2 py-1 text-xs rounded-lg border border-slate-300 bg-white"
-                >
-                  <option value="passport">Passport Rectangle (35x45)</option>
-                  <option value="square">Square</option>
-                  <option value="circle">Circle / Round</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Position</label>
-                <select
-                  value={photo.position || 'top-right'}
-                  onChange={(e) => updatePhoto('position', e.target.value)}
-                  className="w-full px-2 py-1 text-xs rounded-lg border border-slate-300 bg-white"
-                >
-                  <option value="top-right">Top Right (Standard)</option>
-                  <option value="top-left">Top Left</option>
-                  <option value="center">Centered</option>
-                </select>
-              </div>
+              {photoError && (
+                <p className="text-[11px] text-rose-600 font-medium">{photoError}</p>
+              )}
             </div>
           </div>
-        )}
+
+          {/* Shape and position controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Photo Shape</label>
+              <select
+                value={photo.shape || 'passport'}
+                onChange={(e) => updatePhoto('shape', e.target.value)}
+                className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 bg-white"
+              >
+                <option value="passport">Passport Rectangle (35x45)</option>
+                <option value="square">Square</option>
+                <option value="circle">Circle / Round</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Position on CV</label>
+              <select
+                value={photo.position || 'top-right'}
+                onChange={(e) => updatePhoto('position', e.target.value)}
+                className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 bg-white"
+              >
+                <option value="top-right">Top Right (Standard)</option>
+                <option value="top-left">Top Left</option>
+                <option value="center">Top Center</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
